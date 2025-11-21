@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Home, Settings, Users, BarChart2, Mail } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +16,7 @@ const navItems = [
 ];
 
 export function SideNav() {
+  const pathname = usePathname();
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -35,26 +37,32 @@ export function SideNav() {
         </span>
       </div>
       <nav className="flex-1 py-4 flex flex-col gap-2">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex items-center px-4 py-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors",
-              isHovered ? "justify-start" : "justify-center"
-            )}
-          >
-            <item.icon className="h-5 w-5" />
-            <span
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
               className={cn(
-                "ml-4 whitespace-nowrap transition-all duration-300 overflow-hidden",
-                isHovered ? "w-auto opacity-100" : "w-0 opacity-0"
+                "flex items-center px-4 py-2 transition-colors",
+                isActive
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                isHovered ? "justify-start" : "justify-center"
               )}
             >
-              {item.label}
-            </span>
-          </Link>
-        ))}
+              <item.icon className="h-5 w-5" />
+              <span
+                className={cn(
+                  "whitespace-nowrap transition-all duration-300 overflow-hidden",
+                  isHovered ? "ml-4 w-auto opacity-100" : "w-0 opacity-0"
+                )}
+              >
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
       </nav>
     </div>
   );
