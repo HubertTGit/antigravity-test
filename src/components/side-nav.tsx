@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { Home, Settings, Users, BarChart2, Mail } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const navItems = [
   { icon: Home, label: "Home", href: "/" },
@@ -17,52 +21,39 @@ const navItems = [
 
 export function SideNav() {
   const pathname = usePathname();
-  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div
-      className={cn(
-        "flex flex-col h-screen bg-background border-r transition-all duration-300 ease-in-out z-40",
-        isHovered ? "w-64" : "w-16"
-      )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="flex flex-col h-screen w-16 bg-background border-r z-40">
       <div className="flex items-center justify-center h-16 border-b">
-        <span className={cn("font-bold text-xl transition-opacity duration-300", isHovered ? "opacity-100" : "opacity-0 hidden")}>
-          MyApp
-        </span>
-        <span className={cn("font-bold text-xl transition-opacity duration-300", isHovered ? "opacity-0 hidden" : "opacity-100")}>
-          M
-        </span>
+        <span className="font-bold text-xl">M</span>
       </div>
-      <nav className="flex-1 py-4 flex flex-col gap-2">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center px-4 py-2 transition-colors",
-                isActive
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                isHovered ? "justify-start" : "justify-center"
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              <span
-                className={cn(
-                  "whitespace-nowrap transition-all duration-300 overflow-hidden",
-                  isHovered ? "ml-4 w-auto opacity-100" : "w-0 opacity-0"
-                )}
-              >
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
+      <nav className="flex-1 py-4 flex flex-col gap-2 items-center">
+        <TooltipProvider>
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Tooltip key={item.href} delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex items-center justify-center p-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground",
+                      isActive
+                        ? "bg-accent text-accent-foreground"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span className="sr-only">{item.label}</span>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>{item.label}</p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </TooltipProvider>
       </nav>
     </div>
   );
