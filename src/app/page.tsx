@@ -1,14 +1,20 @@
-"use client";
+'use client';
 
-import { SignInButton, useUser } from "@clerk/nextjs";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { getOrCreateUser } from "@/lib/user-service";
+import { SignInButton, useUser } from '@clerk/nextjs';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { getOrCreateUser } from '@/lib/user-service';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from '@/components/ui/input-otp';
 
 export default function Home() {
-  const [todoId, setTodoId] = useState("");
+  const [todoId, setTodoId] = useState('');
   const router = useRouter();
   const { user, isLoaded } = useUser();
 
@@ -21,8 +27,8 @@ export default function Home() {
           const dbUser = await getOrCreateUser(user.id);
           router.push(`/todo/${dbUser.userTodoId}`);
         } catch (error) {
-          console.error("Error initializing user:", error);
-          toast.error("Failed to set up your account. Please try again.");
+          console.error('Error initializing user:', error);
+          toast.error('Failed to set up your account. Please try again.');
         }
       }
     };
@@ -31,9 +37,9 @@ export default function Home() {
 
   const handleTodoIdSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!todoId.trim()) {
-      toast.error("Please enter a valid Todo ID");
+      toast.error('Please enter a valid Todo ID');
       return;
     }
 
@@ -45,14 +51,14 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <h1 className="text-4xl font-bold text-center">Welcome to Antigravity</h1>
-      
+      <h1 className="text-4xl font-bold text-center">Share your Todos</h1>
+
       <div className="flex flex-col gap-6 w-full max-w-md">
         {/* Sign In Option */}
         <div className="flex flex-col gap-3 p-6 border rounded-lg bg-card">
           <h2 className="text-xl font-semibold">New User?</h2>
           <p className="text-sm text-muted-foreground">
-            Sign in to create your personal todo list
+            Sign in to create your personal Todo List
           </p>
           <SignInButton mode="modal">
             <Button className="w-full" size="lg">
@@ -63,19 +69,37 @@ export default function Home() {
 
         {/* Existing User ID Option */}
         <div className="flex flex-col gap-3 p-6 border rounded-lg bg-card">
-          <h2 className="text-xl font-semibold">Existing User?</h2>
+          <h2 className="text-xl font-semibold">Join a List?</h2>
           <p className="text-sm text-muted-foreground">
             View existing Todo List
           </p>
-          <form onSubmit={handleTodoIdSubmit} className="flex flex-col gap-3">
-            <input
-              type="text"
-              value={todoId}
-              onChange={(e) => setTodoId(e.target.value)}
-              placeholder="Enter Todo ID"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-            <Button type="submit" variant="outline" size="lg" className="w-full">
+          <form onSubmit={handleTodoIdSubmit} className="flex flex-col gap-3 justify-center items-center">
+            <InputOTP maxLength={6}>
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+              </InputOTPGroup>
+              <InputOTPGroup>
+                <InputOTPSlot index={1} />
+              </InputOTPGroup>
+              <InputOTPGroup>
+                <InputOTPSlot index={2} />
+              </InputOTPGroup>
+              <InputOTPGroup>
+                <InputOTPSlot index={3} />
+              </InputOTPGroup>
+              <InputOTPGroup>
+                <InputOTPSlot index={4} />
+              </InputOTPGroup>
+              <InputOTPGroup>
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
+            <Button
+              type="submit"
+              variant="outline"
+              size="lg"
+              className="w-full"
+            >
               Access Todo List
             </Button>
           </form>
