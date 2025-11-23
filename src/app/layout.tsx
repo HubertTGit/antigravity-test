@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { SideNav } from "@/components/side-nav";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,16 +36,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex h-screen overflow-hidden">
-            <SideNav />
-            <div className="relative flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
-              <div className="absolute top-4 right-4 z-50">
-                <ThemeToggle />
-              </div>
-              <main className="flex-1">
-                {children}
-              </main>
+          <div className="relative min-h-screen flex flex-col">
+            <div className="absolute top-4 right-4 z-50">
+              <ThemeToggle />
             </div>
+            <main className="flex-1">
+              {children}
+            </main>
           </div>
         </ThemeProvider>
       </body>
