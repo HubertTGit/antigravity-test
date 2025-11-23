@@ -69,9 +69,9 @@ export default function Home() {
 
         {/* Existing User ID Option */}
         <div className="flex flex-col gap-3 p-6 border rounded-lg bg-card">
-          <h2 className="text-xl font-semibold">Join a List?</h2>
+          <h2 className="text-xl font-semibold">Join an existing List?</h2>
           <p className="text-sm text-muted-foreground">
-            View existing Todo List
+            Enter the 6 digits todo Ids for the list you want to join
           </p>
           <form onSubmit={handleTodoIdSubmit} className="flex flex-col gap-3 justify-center items-center">
             <InputOTP maxLength={6}>
