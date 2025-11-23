@@ -1,4 +1,5 @@
 import { UserButton } from "@clerk/nextjs";
+import { TodoList } from "@/components/todo-list";
 
 export default async function TodoPage({ params }: { params: Promise<{ todoId: string }> }) {
   const { todoId } = await params;
@@ -11,6 +12,7 @@ export default async function TodoPage({ params }: { params: Promise<{ todoId: s
       <h1 className="text-4xl font-bold">Todo List</h1>
       <p className="text-xl">Todo ID: {todoId}</p>
       <p className="text-muted-foreground">This page is public and shareable.</p>
+      <TodoList todoId={todoId} />
     </div>
   );
 }

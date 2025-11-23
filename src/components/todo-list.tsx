@@ -9,15 +9,19 @@ import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "antigravity-todo-list";
 
-export function TodoList() {
+export function TodoList({ todoId }: { todoId?: string }) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
 
+  const getStorageKey = () => {
+    return todoId ? `${STORAGE_KEY}-${todoId}` : STORAGE_KEY;
+  };
+
   useEffect(() => {
     setIsMounted(true);
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(getStorageKey());
     if (saved) {
       try {
         setTodos(JSON.parse(saved));
@@ -25,13 +29,13 @@ export function TodoList() {
         console.error("Failed to parse todos", e);
       }
     }
-  }, []);
+  }, [todoId]);
 
   useEffect(() => {
     if (isMounted) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+      localStorage.setItem(getStorageKey(), JSON.stringify(todos));
     }
-  }, [todos, isMounted]);
+  }, [todos, isMounted, todoId]);
 
   const addTodo = () => {
     if (!inputValue.trim()) return;
