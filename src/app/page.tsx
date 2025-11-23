@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { getOrCreateUser } from "@/lib/user-service";
 
 export default function Home() {
   const [todoId, setTodoId] = useState("");
@@ -12,10 +13,20 @@ export default function Home() {
   const { user, isLoaded } = useUser();
 
   // Check if user is authenticated and redirect to their todo page
+  // Check if user is authenticated and redirect to their todo page
   useEffect(() => {
-    if (isLoaded && user) {
-      router.push(`/todo/${user.id}`);
-    }
+    const initUser = async () => {
+      if (isLoaded && user) {
+        try {
+          const dbUser = await getOrCreateUser(user.id);
+          router.push(`/todo/${dbUser.userTodoId}`);
+        } catch (error) {
+          console.error("Error initializing user:", error);
+          toast.error("Failed to set up your account. Please try again.");
+        }
+      }
+    };
+    initUser();
   }, [isLoaded, user, router]);
 
   const handleTodoIdSubmit = (e: React.FormEvent) => {

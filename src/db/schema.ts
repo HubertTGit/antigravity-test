@@ -7,3 +7,9 @@ export const todos = pgTable("todos", {
   userId: text("user_id").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const users = pgTable("users", {
+  userId: text("user_id").primaryKey(),
+  userTodoId: text("user_todo_id").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
