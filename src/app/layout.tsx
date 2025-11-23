@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Navbar } from "@/components/navbar";
+import { Toaster } from "@/components/ui/toaster";
 
 
 const geistSans = Geist({
@@ -45,6 +46,7 @@ export default function RootLayout({
                 {children}
               </main>
             </div>
+            <Toaster />
           </ThemeProvider>
         </body>
       </html>
