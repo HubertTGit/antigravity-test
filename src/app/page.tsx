@@ -1,18 +1,18 @@
 import { TodoList } from "@/components/todo-list";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const { userId } = await auth();
+
+  if (userId) {
+    redirect(`/user/${userId}`);
+  }
+
   return (
-    <main className="min-h-screen p-8 md:p-24 bg-background">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="space-y-2 text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Todo List</h1>
-          <p className="text-muted-foreground">
-            Stay organized and get things done.
-          </p>
-        </div>
-        
-        <TodoList />
-      </div>
-    </main>
+    <div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <h1 className="text-4xl font-bold">Welcome to Antigravity</h1>
+      <p>Please sign in to continue.</p>
+    </div>
   );
 }
