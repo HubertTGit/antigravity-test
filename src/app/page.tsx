@@ -7,29 +7,29 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const [userId, setUserId] = useState("");
+  const [todoId, setTodoId] = useState("");
   const router = useRouter();
   const { user, isLoaded } = useUser();
 
-  // Check if user is authenticated and redirect to their user page
+  // Check if user is authenticated and redirect to their todo page
   useEffect(() => {
     if (isLoaded && user) {
-      router.push(`/user/${user.id}`);
+      router.push(`/todo/${user.id}`);
     }
   }, [isLoaded, user, router]);
 
-  const handleUserIdSubmit = (e: React.FormEvent) => {
+  const handleTodoIdSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!userId.trim()) {
-      toast.error("Please enter a valid User ID");
+    if (!todoId.trim()) {
+      toast.error("Please enter a valid Todo ID");
       return;
     }
 
     // Since we don't have a database to validate against,
-    // we'll accept any non-empty userId and redirect
+    // we'll accept any non-empty todoId and redirect
     // In a real app, you would validate against your database here
-    router.push(`/user/${userId.trim()}`);
+    router.push(`/todo/${todoId.trim()}`);
   };
 
   return (
@@ -56,12 +56,12 @@ export default function Home() {
           <p className="text-sm text-muted-foreground">
             View existing Todo List
           </p>
-          <form onSubmit={handleUserIdSubmit} className="flex flex-col gap-3">
+          <form onSubmit={handleTodoIdSubmit} className="flex flex-col gap-3">
             <input
               type="text"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              placeholder="Enter User ID"
+              value={todoId}
+              onChange={(e) => setTodoId(e.target.value)}
+              placeholder="Enter Todo ID"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
             <Button type="submit" variant="outline" size="lg" className="w-full">
