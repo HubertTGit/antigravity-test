@@ -13,13 +13,7 @@ export function Navbar() {
             <SignedIn>
               <UserButton />
             </SignedIn>
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button className="text-sm font-medium hover:underline">
-                  Sign In
-                </button>
-              </SignInButton>
-            </SignedOut>
+            
              <ThemeToggle />
           </nav>
        

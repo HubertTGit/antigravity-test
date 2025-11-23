@@ -1,7 +1,7 @@
 "use client";
 
-import { SignInButton } from "@clerk/nextjs";
-import { useState } from "react";
+import { SignInButton, useUser } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,14 @@ import { Button } from "@/components/ui/button";
 export default function Home() {
   const [userId, setUserId] = useState("");
   const router = useRouter();
+  const { user, isLoaded } = useUser();
+
+  // Check if user is authenticated and redirect to their user page
+  useEffect(() => {
+    if (isLoaded && user) {
+      router.push(`/user/${user.id}`);
+    }
+  }, [isLoaded, user, router]);
 
   const handleUserIdSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +54,7 @@ export default function Home() {
         <div className="flex flex-col gap-3 p-6 border rounded-lg bg-card">
           <h2 className="text-xl font-semibold">Existing User?</h2>
           <p className="text-sm text-muted-foreground">
-            Enter your User ID to access your todo list
+            View existing Todo List
           </p>
           <form onSubmit={handleUserIdSubmit} className="flex flex-col gap-3">
             <input
