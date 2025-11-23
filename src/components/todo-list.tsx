@@ -1,78 +1,105 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Todo } from "@/types/todo";
 import { TodoItem } from "@/components/todo-item";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
-const STORAGE_KEY = "antigravity-todo-list";
+import { getTodos, addTodo, toggleTodo, deleteTodo, updateTodo } from "@/app/actions";
 
 export function TodoList({ todoId }: { todoId?: string }) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [isMounted, setIsMounted] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
 
-  const getStorageKey = () => {
-    return todoId ? `${STORAGE_KEY}-${todoId}` : STORAGE_KEY;
-  };
-
   useEffect(() => {
-    setIsMounted(true);
-    const saved = localStorage.getItem(getStorageKey());
-    if (saved) {
-      try {
-        setTodos(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse todos", e);
-      }
+    if (todoId) {
+      getTodos(todoId).then((fetchedTodos) => {
+        // Map database fields to Todo type if necessary, assuming schema matches
+        // The schema has createdAt as Date, Todo type likely expects number or string?
+        // Let's check Todo type. For now assuming it's compatible or I'll fix it.
+        // Schema: id (number), text, completed, userId, createdAt (Date)
+        // Todo type likely: id (string), text, completed, createdAt (number)
+        // I need to adapt the data.
+        const adaptedTodos: Todo[] = fetchedTodos.map(t => ({
+          id: t.id.toString(),
+          text: t.text,
+          completed: t.completed,
+          createdAt: t.createdAt.getTime()
+        }));
+        setTodos(adaptedTodos);
+      });
     }
   }, [todoId]);
 
-  useEffect(() => {
-    if (isMounted) {
-      localStorage.setItem(getStorageKey(), JSON.stringify(todos));
-    }
-  }, [todos, isMounted, todoId]);
+  const handleAddTodo = async () => {
+    if (!inputValue.trim() || !todoId) return;
 
-  const addTodo = () => {
-    if (!inputValue.trim()) return;
-
+    const text = inputValue.trim();
+    setInputValue("");
+    
+    // Optimistic update
+    const tempId = Date.now().toString();
     const newTodo: Todo = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      text: inputValue.trim(),
+      id: tempId,
+      text: text,
       completed: false,
       createdAt: Date.now(),
     };
-
     setTodos((prev) => [newTodo, ...prev]);
-    setInputValue("");
+
+    startTransition(async () => {
+      await addTodo(todoId, text);
+      // Refresh list to get real ID
+      const fetchedTodos = await getTodos(todoId);
+      const adaptedTodos: Todo[] = fetchedTodos.map(t => ({
+          id: t.id.toString(),
+          text: t.text,
+          completed: t.completed,
+          createdAt: t.createdAt.getTime()
+        }));
+      setTodos(adaptedTodos);
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      addTodo();
+      handleAddTodo();
     }
   };
 
-  const toggleTodo = (id: string) => {
+  const handleToggleTodo = async (id: string) => {
+    // Optimistic
     setTodos((prev) =>
       prev.map((todo) =>
         todo.id === id ? { ...todo, completed: !todo.completed } : todo
       )
     );
+
+    startTransition(async () => {
+      await toggleTodo(parseInt(id));
+    });
   };
 
-  const deleteTodo = (id: string) => {
+  const handleDeleteTodo = async (id: string) => {
+    // Optimistic
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
+
+    startTransition(async () => {
+      await deleteTodo(parseInt(id));
+    });
   };
 
-  const updateTodo = (id: string, newText: string) => {
+  const handleUpdateTodo = async (id: string, newText: string) => {
+    // Optimistic
     setTodos((prev) =>
       prev.map((todo) => (todo.id === id ? { ...todo, text: newText } : todo))
     );
+
+    startTransition(async () => {
+      await updateTodo(parseInt(id), newText);
+    });
   };
 
   const filteredTodos = todos.filter((todo) => {
@@ -80,10 +107,6 @@ export function TodoList({ todoId }: { todoId?: string }) {
     if (filter === "completed") return todo.completed;
     return true;
   });
-
-  if (!isMounted) {
-    return null;
-  }
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
@@ -96,7 +119,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
           placeholder="Add a new task..."
           className="flex-1 h-12 px-4 rounded-lg border border-input bg-background shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring placeholder:text-muted-foreground"
         />
-        <Button onClick={addTodo} size="icon" className="h-12 w-12 shrink-0">
+        <Button onClick={handleAddTodo} size="icon" className="h-12 w-12 shrink-0" disabled={isPending || !todoId}>
           <Plus className="h-6 w-6" />
           <span className="sr-only">Add Todo</span>
         </Button>
@@ -142,9 +165,9 @@ export function TodoList({ todoId }: { todoId?: string }) {
             <TodoItem
               key={todo.id}
               todo={todo}
-              onToggle={toggleTodo}
-              onDelete={deleteTodo}
-              onUpdate={updateTodo}
+              onToggle={handleToggleTodo}
+              onDelete={handleDeleteTodo}
+              onUpdate={handleUpdateTodo}
             />
           ))
         )}
