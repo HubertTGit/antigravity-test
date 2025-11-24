@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "drizzle:generate": "drizzle-kit",
+    "drizzle:generate": "drizzle-kit generate",
     "drizzle:pull": "drizzle-kit pull",
     "drizzle:push": "drizzle-kit push"
   },
