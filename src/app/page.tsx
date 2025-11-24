@@ -1,8 +1,8 @@
 'use client';
 
 import { SignInButton, useUser } from '@clerk/nextjs';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { getOrCreateUser } from '@/lib/user-service';
@@ -13,12 +13,21 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp';
 
-export default function Home() {
+function HomeContent() {
   const [todoId, setTodoId] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isLoaded } = useUser();
 
-  // Check if user is authenticated and redirect to their todo page
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error === 'invalid_todo_id') {
+      toast.error('Invalid Todo ID');
+      // Optional: Clear the query param
+      router.replace('/');
+    }
+  }, [searchParams, router]);
+
   // Check if user is authenticated and redirect to their todo page
   useEffect(() => {
     const initUser = async () => {
@@ -74,23 +83,16 @@ export default function Home() {
             Enter the 6 digits todo Ids for the list you want to join
           </p>
           <form onSubmit={handleTodoIdSubmit} className="flex flex-col gap-3 justify-center items-center">
-            <InputOTP maxLength={6}>
+            <InputOTP maxLength={6} value={todoId} onChange={(value) => setTodoId(value)}>
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
-              </InputOTPGroup>
-              <InputOTPGroup>
                 <InputOTPSlot index={1} />
-              </InputOTPGroup>
-              <InputOTPGroup>
                 <InputOTPSlot index={2} />
               </InputOTPGroup>
+              <InputOTPSeparator />
               <InputOTPGroup>
                 <InputOTPSlot index={3} />
-              </InputOTPGroup>
-              <InputOTPGroup>
                 <InputOTPSlot index={4} />
-              </InputOTPGroup>
-              <InputOTPGroup>
                 <InputOTPSlot index={5} />
               </InputOTPGroup>
             </InputOTP>
@@ -106,5 +108,13 @@ export default function Home() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
