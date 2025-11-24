@@ -1,8 +1,8 @@
-import { pgTable, serial, text, boolean, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const todos = pgTable('todos', {
-  id: serial('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
   text: text('text').notNull(),
   completed: boolean('completed').default(false).notNull(),
   userTodoId: text('user_todo_id')
