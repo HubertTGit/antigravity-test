@@ -1,6 +1,6 @@
 import {
   pgTable,
-  serial,
+  uuid,
   text,
   boolean,
   timestamp,
@@ -8,7 +8,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 export const todos = pgTable('todos', {
-  id: serial().primaryKey().notNull(),
+  id: uuid('id').primaryKey().defaultRandom(),
   text: text().notNull(),
   completed: boolean().default(false).notNull(),
   userId: text('user_id').notNull(),
