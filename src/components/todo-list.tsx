@@ -5,7 +5,7 @@ import { Todo } from "@/types/todo";
 import { TodoItem } from "@/components/todo-item";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getTodos, addTodo, toggleTodo, deleteTodo, updateTodo } from "@/app/actions";
+import { getTodos, addTodo, toggleTodo, deleteTodo, updateTodo, deleteCompletedTodos } from "@/app/actions";
 
 export function TodoList({ todoId }: { todoId?: string }) {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -38,7 +38,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
 
     const text = inputValue.trim();
     setInputValue("");
-    
+
     // Optimistic update
     const tempId = Date.now().toString();
     const newTodo: Todo = {
@@ -54,11 +54,11 @@ export function TodoList({ todoId }: { todoId?: string }) {
       // Refresh list to get real ID
       const fetchedTodos = await getTodos(todoId);
       const adaptedTodos: Todo[] = fetchedTodos.map(t => ({
-          id: t.id.toString(),
-          text: t.text,
-          completed: t.completed,
-          createdAt: t.createdAt.getTime()
-        }));
+        id: t.id.toString(),
+        text: t.text,
+        completed: t.completed,
+        createdAt: t.createdAt.getTime()
+      }));
       setTodos(adaptedTodos);
     });
   };
@@ -78,7 +78,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
     );
 
     startTransition(async () => {
-      await toggleTodo(parseInt(id));
+      await toggleTodo(id);
     });
   };
 
@@ -87,7 +87,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
 
     startTransition(async () => {
-      await deleteTodo(parseInt(id));
+      await deleteTodo(id);
     });
   };
 
@@ -98,7 +98,18 @@ export function TodoList({ todoId }: { todoId?: string }) {
     );
 
     startTransition(async () => {
-      await updateTodo(parseInt(id), newText);
+      await updateTodo(id, newText);
+    });
+  };
+
+  const handleDeleteCompleted = async () => {
+    if (!todoId) return;
+
+    // Optimistic
+    setTodos((prev) => prev.filter((todo) => !todo.completed));
+
+    startTransition(async () => {
+      await deleteCompletedTodos(todoId);
     });
   };
 
@@ -149,6 +160,19 @@ export function TodoList({ todoId }: { todoId?: string }) {
         </Button>
       </div>
 
+      {todos.some((todo) => todo.completed) && (
+        <div className="flex justify-center">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDeleteCompleted}
+            disabled={isPending}
+          >
+            Delete Completed
+          </Button>
+        </div>
+      )}
+
       <div className="space-y-2">
         {filteredTodos.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
@@ -156,8 +180,8 @@ export function TodoList({ todoId }: { todoId?: string }) {
               {filter === "all"
                 ? "No tasks yet. Add one above!"
                 : filter === "active"
-                ? "No active tasks!"
-                : "No completed tasks!"}
+                  ? "No active tasks!"
+                  : "No completed tasks!"}
             </p>
           </div>
         ) : (
