@@ -5,7 +5,14 @@ import { Todo } from "@/types/todo";
 import { TodoItem } from "@/components/todo-item";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getTodos, addTodo, toggleTodo, deleteTodo, updateTodo, deleteCompletedTodos } from "@/app/actions";
+import {
+  getTodos,
+  addTodo,
+  toggleTodo,
+  deleteTodo,
+  updateTodo,
+  deleteCompletedTodos,
+} from "@/app/actions";
 
 export function TodoList({ todoId }: { todoId?: string }) {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -22,11 +29,11 @@ export function TodoList({ todoId }: { todoId?: string }) {
         // Schema: id (number), text, completed, userId, createdAt (Date)
         // Todo type likely: id (string), text, completed, createdAt (number)
         // I need to adapt the data.
-        const adaptedTodos: Todo[] = fetchedTodos.map(t => ({
+        const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({
           id: t.id.toString(),
           text: t.text,
           completed: t.completed,
-          createdAt: t.createdAt.getTime()
+          createdAt: t.createdAt.getTime(),
         }));
         setTodos(adaptedTodos);
       });
@@ -53,11 +60,11 @@ export function TodoList({ todoId }: { todoId?: string }) {
       await addTodo(todoId, text);
       // Refresh list to get real ID
       const fetchedTodos = await getTodos(todoId);
-      const adaptedTodos: Todo[] = fetchedTodos.map(t => ({
+      const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({
         id: t.id.toString(),
         text: t.text,
         completed: t.completed,
-        createdAt: t.createdAt.getTime()
+        createdAt: t.createdAt.getTime(),
       }));
       setTodos(adaptedTodos);
     });
@@ -73,8 +80,8 @@ export function TodoList({ todoId }: { todoId?: string }) {
     // Optimistic
     setTodos((prev) =>
       prev.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo,
+      ),
     );
 
     startTransition(async () => {
@@ -94,7 +101,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
   const handleUpdateTodo = async (id: string, newText: string) => {
     // Optimistic
     setTodos((prev) =>
-      prev.map((todo) => (todo.id === id ? { ...todo, text: newText } : todo))
+      prev.map((todo) => (todo.id === id ? { ...todo, text: newText } : todo)),
     );
 
     startTransition(async () => {
@@ -120,62 +127,72 @@ export function TodoList({ todoId }: { todoId?: string }) {
   });
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6">
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Add a new task..."
-          className="flex-1 h-12 px-4 rounded-lg border border-input bg-background shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring placeholder:text-muted-foreground"
-        />
-        <Button onClick={handleAddTodo} size="icon" className="h-12 w-12 shrink-0" disabled={isPending || !todoId}>
-          <Plus className="h-6 w-6" />
-          <span className="sr-only">Add Todo</span>
-        </Button>
-      </div>
-
-      <div className="flex gap-2 justify-center">
-        <Button
-          variant={filter === "all" ? "default" : "outline"}
-          onClick={() => setFilter("all")}
-          size="sm"
-        >
-          All
-        </Button>
-        <Button
-          variant={filter === "active" ? "default" : "outline"}
-          onClick={() => setFilter("active")}
-          size="sm"
-        >
-          Active
-        </Button>
-        <Button
-          variant={filter === "completed" ? "default" : "outline"}
-          onClick={() => setFilter("completed")}
-          size="sm"
-        >
-          Completed
-        </Button>
-      </div>
-
-      {todos.some((todo) => todo.completed) && (
-        <div className="flex justify-center">
+    <div className="mx-4">
+      <div className="bg-background/95 sticky top-0 z-100 mx-auto w-full max-w-2xl space-y-4 py-4">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Add a new shopping item..."
+            className="border-input bg-background focus-visible:ring-ring placeholder:text-muted-foreground h-12 flex-1 rounded-lg border px-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+          />
           <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleDeleteCompleted}
-            disabled={isPending}
+            onClick={handleAddTodo}
+            size="icon"
+            className="h-12 w-12 shrink-0"
+            disabled={isPending || !todoId}
           >
-            Delete Completed
+            <Plus className="h-6 w-6" />
+            <span className="sr-only">Add Todo</span>
           </Button>
         </div>
-      )}
 
-      <div className="space-y-2">
+        <div className="flex justify-between gap-2">
+          <div className="flex gap-2">
+            <Button
+              variant={filter === "all" ? "default" : "outline"}
+              onClick={() => setFilter("all")}
+              size="sm"
+            >
+              All
+            </Button>
+            <Button
+              variant={filter === "active" ? "default" : "outline"}
+              onClick={() => setFilter("active")}
+              size="sm"
+            >
+              Active
+            </Button>
+            <Button
+              variant={filter === "completed" ? "default" : "outline"}
+              onClick={() => setFilter("completed")}
+              size="sm"
+            >
+              Completed
+            </Button>
+          </div>
+          <div>
+            {todos.some((todo) => todo.completed) && (
+              <div className="flex justify-center">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteCompleted}
+                  disabled={isPending}
+                >
+                  Delete Completed
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto my-4 w-full max-w-2xl space-y-2">
         {filteredTodos.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
+          <div className="text-muted-foreground py-12 text-center">
             <p>
               {filter === "all"
                 ? "No tasks yet. Add one above!"

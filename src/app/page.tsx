@@ -1,30 +1,30 @@
-'use client';
+"use client";
 
-import { SignInButton, useUser } from '@clerk/nextjs';
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { getOrCreateUser } from '@/lib/user-service';
+import { SignInButton, useUser } from "@clerk/nextjs";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { getOrCreateUser } from "@/lib/user-service";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSeparator,
   InputOTPSlot,
-} from '@/components/ui/input-otp';
+} from "@/components/ui/input-otp";
 
 function HomeContent() {
-  const [todoId, setTodoId] = useState('');
+  const [todoId, setTodoId] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoaded } = useUser();
 
   useEffect(() => {
-    const error = searchParams.get('error');
-    if (error === 'invalid_todo_id') {
-      toast.error('Invalid Todo ID');
+    const error = searchParams.get("error");
+    if (error === "invalid_todo_id") {
+      toast.error("Invalid Todo ID");
       // Optional: Clear the query param
-      router.replace('/');
+      router.replace("/");
     }
   }, [searchParams, router]);
 
@@ -36,8 +36,8 @@ function HomeContent() {
           const dbUser = await getOrCreateUser(user.id);
           router.push(`/todo/${dbUser.userTodoId}`);
         } catch (error) {
-          console.error('Error initializing user:', error);
-          toast.error('Failed to set up your account. Please try again.');
+          console.error("Error initializing user:", error);
+          toast.error("Failed to set up your account. Please try again.");
         }
       }
     };
@@ -48,7 +48,7 @@ function HomeContent() {
     e.preventDefault();
 
     if (!todoId.trim()) {
-      toast.error('Please enter a valid Todo ID');
+      toast.error("Please enter a valid Todo ID");
       return;
     }
 
@@ -59,15 +59,13 @@ function HomeContent() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <h1 className="text-4xl font-bold text-center">Share your Todos</h1>
-
-      <div className="flex flex-col gap-6 w-full max-w-md">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-8 p-8 pb-20 sm:p-20">
+      <div className="flex w-full max-w-md flex-col gap-6">
         {/* Sign In Option */}
-        <div className="flex flex-col gap-3 p-6 border rounded-lg bg-card">
-          <h2 className="text-xl font-semibold">New User?</h2>
-          <p className="text-sm text-muted-foreground">
-            Sign in to create your personal Todo List
+        <div className="bg-card flex flex-col gap-3 rounded-lg border p-6">
+          <h2 className="text-xl font-semibold">Start a new Shopping List?</h2>
+          <p className="text-muted-foreground text-sm">
+            Sign in to create your personal Shopping List
           </p>
           <SignInButton mode="modal">
             <Button className="w-full" size="lg">
@@ -77,13 +75,22 @@ function HomeContent() {
         </div>
 
         {/* Existing User ID Option */}
-        <div className="flex flex-col gap-3 p-6 border rounded-lg bg-card">
-          <h2 className="text-xl font-semibold">Join an existing List?</h2>
-          <p className="text-sm text-muted-foreground">
-            Enter the 6 digits todo Ids for the list you want to join
+        <div className="bg-card flex flex-col gap-3 rounded-lg border p-6">
+          <h2 className="text-xl font-semibold">
+            Join an existing Shopping List?
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Enter the 6 digits Shopping List Ids for the list you want to join
           </p>
-          <form onSubmit={handleTodoIdSubmit} className="flex flex-col gap-3 justify-center items-center">
-            <InputOTP maxLength={6} value={todoId} onChange={(value) => setTodoId(value)}>
+          <form
+            onSubmit={handleTodoIdSubmit}
+            className="flex flex-col items-center justify-center gap-3"
+          >
+            <InputOTP
+              maxLength={6}
+              value={todoId}
+              onChange={(value) => setTodoId(value)}
+            >
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
                 <InputOTPSlot index={1} />
@@ -102,7 +109,7 @@ function HomeContent() {
               size="lg"
               className="w-full"
             >
-              Access Todo List
+              Access Shopping List
             </Button>
           </form>
         </div>
