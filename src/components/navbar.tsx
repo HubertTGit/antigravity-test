@@ -59,7 +59,7 @@ export function Navbar() {
   const { isSignedIn } = useAuth();
 
   return (
-    <header className="bg-background/95 sticky top-0 z-50 w-full border-b backdrop-blur">
+    <header className="bg-background/95 sticky top-0 z-50 w-full border-b pt-[env(safe-area-inset-top)] backdrop-blur">
       <nav className="flex h-14 w-full items-center justify-between px-4">
         <ShareButton show={isSignedIn && pathname !== "/"} />
 
