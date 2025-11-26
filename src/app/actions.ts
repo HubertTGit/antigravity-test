@@ -1,64 +1,117 @@
 "use server";
 
-import { db } from "@/lib/db";
-import { todos } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { supabase } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export async function getTodos(userId: string) {
-  return await db
-    .select()
-    .from(todos)
-    .where(eq(todos.userTodoId, userId))
-    .orderBy(desc(todos.createdAt));
+  const { data, error } = await supabase
+    .from("todos")
+    .select("*")
+    .eq("user_todo_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
 }
 
 export async function addTodo(todoId: string, text: string) {
-  await db
-    .insert(todos)
-    .values({
-      text,
-      userTodoId: todoId,
-    })
-    .returning();
+  const { error } = await supabase.from("todos").insert({
+    text,
+    user_todo_id: todoId,
+  });
+
+  if (error) {
+    throw error;
+  }
 
   revalidatePath(`/todo/${todoId}`);
 }
 
 export async function toggleTodo(id: string) {
-  const todo = await db.select().from(todos).where(eq(todos.id, id)).limit(1);
-  if (todo.length > 0) {
-    await db
-      .update(todos)
-      .set({ completed: !todo[0].completed })
-      .where(eq(todos.id, id))
-      .returning();
+  // Fetch current todo to get completed state and userTodoId
+  const { data: todo, error: fetchError } = await supabase
+    .from("todos")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-    revalidatePath(`/todo/${todo[0].userTodoId}`);
+  if (fetchError || !todo) {
+    return;
   }
+
+  const { error: updateError } = await supabase
+    .from("todos")
+    .update({ completed: !todo.completed })
+    .eq("id", id);
+
+  if (updateError) {
+    throw updateError;
+  }
+
+  revalidatePath(`/todo/${todo.user_todo_id}`);
 }
 
 export async function deleteTodo(id: string) {
-  const todo = await db.select().from(todos).where(eq(todos.id, id)).limit(1);
-  if (todo.length > 0) {
-    await db.delete(todos).where(eq(todos.id, id));
+  // Fetch todo to get userTodoId before deleting
+  const { data: todo, error: fetchError } = await supabase
+    .from("todos")
+    .select("user_todo_id")
+    .eq("id", id)
+    .single();
 
-    revalidatePath(`/todo/${todo[0].userTodoId}`);
+  if (fetchError || !todo) {
+    return;
   }
+
+  const { error: deleteError } = await supabase
+    .from("todos")
+    .delete()
+    .eq("id", id);
+
+  if (deleteError) {
+    throw deleteError;
+  }
+
+  revalidatePath(`/todo/${todo.user_todo_id}`);
 }
 
 export async function deleteCompletedTodos(userId: string) {
-  await db
-    .delete(todos)
-    .where(and(eq(todos.userTodoId, userId), eq(todos.completed, true)));
+  const { error } = await supabase
+    .from("todos")
+    .delete()
+    .eq("user_todo_id", userId)
+    .eq("completed", true);
+
+  if (error) {
+    throw error;
+  }
+
   revalidatePath(`/todo/${userId}`);
 }
 
 export async function updateTodo(id: string, text: string) {
-  const todo = await db.select().from(todos).where(eq(todos.id, id)).limit(1);
-  if (todo.length > 0) {
-    await db.update(todos).set({ text }).where(eq(todos.id, id));
+  // Fetch todo to get userTodoId
+  const { data: todo, error: fetchError } = await supabase
+    .from("todos")
+    .select("user_todo_id")
+    .eq("id", id)
+    .single();
 
-    revalidatePath(`/todo/${todo[0].userTodoId}`);
+  if (fetchError || !todo) {
+    return;
   }
+
+  const { error: updateError } = await supabase
+    .from("todos")
+    .update({ text })
+    .eq("id", id);
+
+  if (updateError) {
+    throw updateError;
+  }
+
+  revalidatePath(`/todo/${todo.user_todo_id}`);
 }

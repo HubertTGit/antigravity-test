@@ -1,14 +1,14 @@
 "use server";
 
-import { db } from "./db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { supabase } from "./db";
 
 export async function getOrCreateUser(userId: string, name?: string) {
   // 1. Check if user exists
-  const existingUser = await db.query.users.findFirst({
-    where: eq(users.userId, userId),
-  });
+  const { data: existingUser, error: fetchError } = await supabase
+    .from("users")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
 
   if (existingUser) {
     return existingUser;
@@ -25,23 +25,25 @@ export async function getOrCreateUser(userId: string, name?: string) {
 
     try {
       // 3. Insert new user record
-      const newUser = await db
-        .insert(users)
-        .values({
-          userId,
-          userTodoId,
+      const { data: newUser, error: insertError } = await supabase
+        .from("users")
+        .insert({
+          user_id: userId,
+          user_todo_id: userTodoId,
           name: fullName,
         })
-        .returning();
+        .select()
+        .single();
 
-      return newUser[0];
+      if (insertError) {
+        throw insertError;
+      }
+
+      return newUser;
     } catch (error: any) {
       // Check for unique constraint violation on userTodoId
       // Postgres error code 23505 is unique_violation
-      if (
-        error.code === "23505" &&
-        error.constraint?.includes("user_todo_id")
-      ) {
+      if (error.code === "23505" && error.message?.includes("user_todo_id")) {
         attempts++;
         continue;
       }

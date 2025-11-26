@@ -1,9 +1,6 @@
-import { UserButton } from '@clerk/nextjs';
-import { TodoList } from '@/components/todo-list';
-import { db } from '@/lib/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { redirect } from 'next/navigation';
+import { TodoList } from "@/components/todo-list";
+import { supabase } from "@/lib/db";
+import { redirect } from "next/navigation";
 
 export default async function TodoPage({
   params,
@@ -12,12 +9,14 @@ export default async function TodoPage({
 }) {
   const { todoId } = await params;
 
-  const user = await db.query.users.findFirst({
-    where: eq(users.userTodoId, todoId),
-  });
+  const { data: user, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("user_todo_id", todoId)
+    .single();
 
-  if (!user) {
-    redirect('/?error=invalid_todo_id');
+  if (!user || error) {
+    redirect("/?error=invalid_todo_id");
   }
 
   return (

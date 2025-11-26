@@ -1,10 +1,20 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
-import * as schema from '@/db/schema';
+import { createClient } from "@supabase/supabase-js";
 
-if (!process.env.NEON_DB_AUTH) {
-  throw new Error('NEON_DB_AUTH environment variable is not set');
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error("NEXT_PUBLIC_SUPABASE_URL environment variable is not set");
 }
 
-const sql = neon(process.env.NEON_DB_AUTH);
-export const db = drizzle(sql, { schema });
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error("SUPABASE_SERVICE_ROLE_KEY environment variable is not set");
+}
+
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  },
+);
