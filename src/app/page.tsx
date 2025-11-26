@@ -33,7 +33,7 @@ function HomeContent() {
     const initUser = async () => {
       if (isLoaded && user) {
         try {
-          const dbUser = await getOrCreateUser(user.id);
+          const dbUser = await getOrCreateUser(user.id, user.fullName);
           router.push(`/todo/${dbUser.userTodoId}`);
         } catch (error) {
           console.error("Error initializing user:", error);

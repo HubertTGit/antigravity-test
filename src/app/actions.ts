@@ -1,9 +1,9 @@
-'use server';
+"use server";
 
-import { db } from '@/lib/db';
-import { todos } from '@/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
+import { db } from "@/lib/db";
+import { todos } from "@/db/schema";
+import { eq, desc, and } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export async function getTodos(userId: string) {
   return await db
@@ -13,12 +13,12 @@ export async function getTodos(userId: string) {
     .orderBy(desc(todos.createdAt));
 }
 
-export async function addTodo(userId: string, text: string) {
+export async function addTodo(todoId: string, text: string) {
   await db.insert(todos).values({
     text,
-    userTodoId: userId,
+    userTodoId: todoId,
   });
-  revalidatePath(`/todo/${userId}`);
+  revalidatePath(`/todo/${todoId}`);
 }
 
 export async function toggleTodo(id: string) {
