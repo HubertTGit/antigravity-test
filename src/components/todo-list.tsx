@@ -13,79 +13,12 @@ import {
   updateTodo,
   deleteCompletedTodos,
 } from "@/app/actions";
-import { io } from "socket.io-client";
-import { toast } from "sonner";
 
 export function TodoList({ todoId }: { todoId?: string }) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isPending, startTransition] = useTransition();
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
-  const [socketId, setSocketId] = useState<string>();
-
-  useEffect(() => {
-    const socket = io();
-
-    socket.on("connect", () => {
-      console.log("Connected to socket:", socket.id);
-      setSocketId(socket.id);
-    });
-
-    socket.on("notification:todo_created", (data: any) => {
-      console.log("Received notification:todo_created", data);
-      toast.success(`${data.user} added a new task: ${data.title}`);
-      // Refresh list
-      if (todoId) {
-        getTodos(todoId).then((fetchedTodos) => {
-          const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({
-            id: t.id.toString(),
-            text: t.text,
-            completed: t.completed,
-            createdAt: t.createdAt.getTime(),
-          }));
-          setTodos(adaptedTodos);
-        });
-      }
-    });
-
-    socket.on("notification:todo_updated", (data: any) => {
-      console.log("Received notification:todo_updated", data);
-      toast.info(`${data.user} updated task: ${data.title}`);
-      // Refresh list
-      if (todoId) {
-        getTodos(todoId).then((fetchedTodos) => {
-          const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({
-            id: t.id.toString(),
-            text: t.text,
-            completed: t.completed,
-            createdAt: t.createdAt.getTime(),
-          }));
-          setTodos(adaptedTodos);
-        });
-      }
-    });
-
-    socket.on("notification:todo_deleted", (data: any) => {
-      console.log("Received notification:todo_deleted", data);
-      toast.error(`${data.user} deleted a task`);
-      // Refresh list
-      if (todoId) {
-        getTodos(todoId).then((fetchedTodos) => {
-          const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({
-            id: t.id.toString(),
-            text: t.text,
-            completed: t.completed,
-            createdAt: t.createdAt.getTime(),
-          }));
-          setTodos(adaptedTodos);
-        });
-      }
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [todoId]);
 
   useEffect(() => {
     if (todoId) {
@@ -124,7 +57,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
     setTodos((prev) => [newTodo, ...prev]);
 
     startTransition(async () => {
-      await addTodo(todoId, text, socketId);
+      await addTodo(todoId, text);
       // Refresh list to get real ID
       const fetchedTodos = await getTodos(todoId);
       const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({
@@ -152,7 +85,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
     );
 
     startTransition(async () => {
-      await toggleTodo(id, socketId);
+      await toggleTodo(id);
     });
   };
 
@@ -161,7 +94,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
 
     startTransition(async () => {
-      await deleteTodo(id, socketId);
+      await deleteTodo(id);
     });
   };
 
@@ -172,7 +105,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
     );
 
     startTransition(async () => {
-      await updateTodo(id, newText, socketId);
+      await updateTodo(id, newText);
     });
   };
 
