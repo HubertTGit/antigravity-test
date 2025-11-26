@@ -27,8 +27,10 @@ function ExitButton({ show = false }: { show?: boolean }): ReactElement | null {
 
 function ShareButton({
   show = false,
+  todoId,
 }: {
   show?: boolean;
+  todoId?: string;
 }): ReactElement | null {
   if (!show) return null;
 
@@ -41,9 +43,9 @@ function ShareButton({
         variant="ghost"
         size="icon"
         onClick={() => {
-          navigator.clipboard.writeText(window.location.href);
+          navigator.clipboard.writeText(todoId || "");
           toast(
-            "URL has been copied, you can now paste it to share it with your friends and family",
+            "Shopping list ID has been copied to clipboard, you can now paste it to share it with your friends and family",
           );
         }}
       >
@@ -56,12 +58,16 @@ function ShareButton({
 
 export function Navbar() {
   const pathname = usePathname();
+  const todoId = pathname.startsWith("/todo/")
+    ? pathname.split("/")[2]
+    : undefined;
+
   const { isSignedIn } = useAuth();
 
   return (
     <header className="bg-background/95 sticky top-0 z-50 w-full border-b pt-[env(safe-area-inset-top)] backdrop-blur">
       <nav className="flex h-14 w-full items-center justify-between px-4">
-        <ShareButton show={isSignedIn && pathname !== "/"} />
+        <ShareButton show={isSignedIn && pathname !== "/"} todoId={todoId} />
 
         <ExitButton show={!isSignedIn && pathname !== "/"} />
 
