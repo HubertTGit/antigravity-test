@@ -32,8 +32,10 @@ function HomeContent() {
   useEffect(() => {
     const initUser = async () => {
       if (isLoaded && user) {
+        const fullname = user.fullName || "none";
+
         try {
-          const dbUser = await getOrCreateUser(user.id, user.fullName);
+          const dbUser = await getOrCreateUser(user.id, fullname);
           router.push(`/todo/${dbUser.userTodoId}`);
         } catch (error) {
           console.error("Error initializing user:", error);
