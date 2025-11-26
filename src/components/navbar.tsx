@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  UserButton,
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  useAuth,
-} from "@clerk/nextjs";
+import { UserButton, SignedIn, useAuth } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "./ui/button";
 import Link from "next/link";
