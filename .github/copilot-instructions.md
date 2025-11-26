@@ -2,9 +2,11 @@
 
 ## Architecture Overview
 
-This is a Next.js 16 (App Router) collaborative shopping list PWA with Clerk authentication and Supabase PostgreSQL database.
+This is a Next.js 16 (App Router) collaborative shopping list PWA with Clerk authentication and Supabase PostgreSQL database. Uses Turbopack in development for faster builds.
 
 **Key data flow**: Clerk auth → middleware → user service generates 6-digit `userTodoId` → todos scoped by `userTodoId` → optimistic UI updates in client components → server actions revalidate paths.
+
+**Sharing model**: Each user gets a unique 6-digit `userTodoId` code. Users can share this code to allow others to view/edit the same shopping list (shareable via `/todo/[todoId]` route). All todos are scoped to this code, not the Clerk user ID.
 
 ## Database Architecture
 
@@ -36,6 +38,7 @@ This is a Next.js 16 (App Router) collaborative shopping list PWA with Clerk aut
 1. Middleware (`src/middleware.ts`) uses Clerk with public routes: `/`, `/todo/*`, `/sign-in/*`, `/sign-up/*`
 2. User service (`src/lib/user-service.ts`) handles `getOrCreateUser()` which generates unique 6-digit `userTodoId` with retry logic (max 5 attempts)
 3. All todo operations use `userTodoId` for scoping, not `userId`
+4. **Route validation**: Dynamic routes like `/todo/[todoId]` validate the `todoId` by querying Supabase for matching user, redirect to `/?error=invalid_todo_id` if not found (see `src/app/todo/[todoId]/page.tsx`)
 
 ## Server Actions Pattern
 
@@ -65,9 +68,22 @@ export async function addTodo(todoId: string, text: string) {
 
 See `src/components/todo-list.tsx` for canonical examples:
 
+- **"use client" directive**: Required for components using hooks (`useState`, `useEffect`, `useTransition`), event handlers, or browser APIs
 - **Optimistic updates**: Update local state immediately, then call server action in `startTransition`
 - **State management**: Use `useState` for UI state, `useTransition` for server action loading states
 - **No manual refetching**: Rely on `revalidatePath()` from server actions to trigger re-renders
+- **Data type adaptation**: Server components fetch data with snake_case DB columns, client components expect camelCase TypeScript types. Transform in `useEffect` when fetching:
+
+```typescript
+const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({
+  id: t.id.toString(),
+  text: t.text,
+  completed: t.completed,
+  createdAt: t.created_at.getTime(), // DB: created_at → TS: createdAt
+}));
+```
+
+- **Toast notifications**: Use `toast` from `sonner` for user feedback (success/error messages)
 
 ## UI Components
 
@@ -124,3 +140,4 @@ Required in `.env.local`:
 - `src/lib/db.ts` - Supabase client configuration
 - `src/middleware.ts` - Clerk auth routing
 - `src/components/todo-list.tsx` - Canonical client component with optimistic updates
+- `src/app/todo/[todoId]/page.tsx` - Dynamic route with server-side validation example
