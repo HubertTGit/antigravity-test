@@ -1,10 +1,11 @@
 "use client";
 
-import { SignInButton, useUser } from "@clerk/nextjs";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/lib/auth-context";
+import Link from "next/link";
 import { getOrCreateUser } from "@/lib/user-service";
 import {
   InputOTP,
@@ -32,7 +33,7 @@ function HomeContent() {
   useEffect(() => {
     const initUser = async () => {
       if (isLoaded && user) {
-        const fullname = user.fullName || "none";
+        const fullname = user.user_metadata?.name || "none";
 
         try {
           const dbUser = await getOrCreateUser(user.id, fullname);
@@ -69,11 +70,11 @@ function HomeContent() {
           <p className="text-muted-foreground text-sm">
             Sign in to create your personal Shopping List
           </p>
-          <SignInButton mode="modal">
+          <Link href="/sign-in" className="w-full">
             <Button className="w-full" size="lg">
               Sign In
             </Button>
-          </SignInButton>
+          </Link>
         </div>
 
         {/* Existing User ID Option */}

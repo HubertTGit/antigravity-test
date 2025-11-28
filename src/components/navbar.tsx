@@ -1,8 +1,9 @@
 "use client";
 
-import { UserButton, SignedIn, useAuth } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "./ui/button";
+import { UserMenu } from "@/components/user-menu";
+import { useUser } from "@/lib/auth-context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactElement } from "react";
@@ -30,9 +31,7 @@ function ShareButton({
 
   return (
     <div className="flex items-center gap-2">
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
+      <UserMenu />
       <Button
         variant="ghost"
         size="icon"
@@ -56,7 +55,7 @@ export function Navbar() {
     ? pathname.split("/")[2]
     : undefined;
 
-  const { isSignedIn } = useAuth();
+  const { isSignedIn } = useUser();
 
   return (
     <header className="bg-background/95 sticky top-0 z-50 w-full border-b pt-[env(safe-area-inset-top)] backdrop-blur">
