@@ -3,9 +3,8 @@
 import { supabase } from "./db";
 
 export async function getOrCreateUser(userId: string, name?: string) {
-  // 1. Check if user exists
   const { data: existingUser, error: fetchError } = await supabase
-    .from("users")
+    .from("creators")
     .select("*")
     .eq("user_id", userId)
     .single();
@@ -26,7 +25,7 @@ export async function getOrCreateUser(userId: string, name?: string) {
     try {
       // 3. Insert new user record
       const { data: newUser, error: insertError } = await supabase
-        .from("users")
+        .from("creators")
         .insert({
           user_id: userId,
           user_todo_id: userTodoId,

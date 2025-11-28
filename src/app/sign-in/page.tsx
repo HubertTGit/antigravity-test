@@ -8,6 +8,9 @@ export default function SignInPage() {
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight">Sign in</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Sign in with Google or Magic Link
+          </p>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Or{" "}
             <Link
               href="/sign-up"
