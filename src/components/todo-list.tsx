@@ -13,6 +13,8 @@ import {
   updateTodo,
   deleteCompletedTodos,
 } from "@/app/actions";
+import { createClient } from "@/lib/supabase/client";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 export function TodoList({ todoId }: { todoId?: string }) {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -21,23 +23,88 @@ export function TodoList({ todoId }: { todoId?: string }) {
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
 
   useEffect(() => {
-    if (todoId) {
-      getTodos(todoId).then((fetchedTodos) => {
-        // Map database fields to Todo type if necessary, assuming schema matches
-        // The schema has createdAt as Date, Todo type likely expects number or string?
-        // Let's check Todo type. For now assuming it's compatible or I'll fix it.
-        // Schema: id (number), text, completed, userId, createdAt (Date)
-        // Todo type likely: id (string), text, completed, createdAt (number)
-        // I need to adapt the data.
-        const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({
-          id: t.id.toString(),
-          text: t.text,
-          completed: t.completed,
-          created_at: t.created_at,
-        }));
-        setTodos(adaptedTodos);
-      });
-    }
+    if (!todoId) return;
+
+    // Initial fetch
+    getTodos(todoId).then((fetchedTodos) => {
+      const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({
+        id: t.id.toString(),
+        text: t.text,
+        completed: t.completed,
+        created_at: t.created_at,
+      }));
+      setTodos(adaptedTodos);
+    });
+
+    // Set up realtime subscription
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`todos:${todoId}`)
+      .on<{
+        id: string;
+        text: string;
+        completed: boolean;
+        user_todo_id: string;
+        created_at: string;
+      }>(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "todos",
+          filter: `user_todo_id=eq.${todoId}`,
+        },
+        (
+          payload: RealtimePostgresChangesPayload<{
+            id: string;
+            text: string;
+            completed: boolean;
+            user_todo_id: string;
+            created_at: string;
+          }>,
+        ) => {
+          console.log("Realtime event:", payload.eventType, payload);
+
+          if (payload.eventType === "INSERT" && payload.new) {
+            const newTodo: Todo = {
+              id: payload.new.id.toString(),
+              text: payload.new.text,
+              completed: payload.new.completed,
+              created_at: payload.new.created_at,
+            };
+            setTodos((prev) => {
+              // Avoid duplicates
+              if (prev.some((t) => t.id === newTodo.id)) return prev;
+              return [newTodo, ...prev];
+            });
+          } else if (payload.eventType === "UPDATE" && payload.new) {
+            const updatedTodo: Todo = {
+              id: payload.new.id.toString(),
+              text: payload.new.text,
+              completed: payload.new.completed,
+              created_at: payload.new.created_at,
+            };
+            setTodos((prev) =>
+              prev.map((todo) =>
+                todo.id === updatedTodo.id ? updatedTodo : todo,
+              ),
+            );
+          } else if (
+            payload.eventType === "DELETE" &&
+            payload.old &&
+            payload.old.id
+          ) {
+            const deletedId = payload.old.id.toString();
+            setTodos((prev) => prev.filter((todo) => todo.id !== deletedId));
+          }
+        },
+      )
+      .subscribe();
+
+    // Cleanup
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [todoId]);
 
   const handleAddTodo = async () => {
@@ -58,15 +125,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
 
     startTransition(async () => {
       await addTodo(todoId, text);
-      // Refresh list to get real ID
-      const fetchedTodos = await getTodos(todoId);
-      const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({
-        id: t.id.toString(),
-        text: t.text,
-        completed: t.completed,
-        created_at: t.created_at,
-      }));
-      setTodos(adaptedTodos);
+      // Realtime subscription will handle updating with real ID
     });
   };
 
