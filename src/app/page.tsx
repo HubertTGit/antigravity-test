@@ -37,7 +37,7 @@ function HomeContent() {
 
         try {
           const dbUser = await getOrCreateUser(user.id, fullname);
-          router.push(`/todo/${dbUser.userTodoId}`);
+          router.push(`/todo/${dbUser.user_todo_id}`);
         } catch (error) {
           console.error("Error initializing user:", error);
           toast.error("Failed to set up your account. Please try again.");

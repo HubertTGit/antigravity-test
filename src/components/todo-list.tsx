@@ -52,7 +52,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
       id: tempId,
       text: text,
       completed: false,
-      createdAt: Date.now(),
+      created_at: Date.now(),
     };
     setTodos((prev) => [newTodo, ...prev]);
 

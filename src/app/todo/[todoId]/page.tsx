@@ -1,5 +1,5 @@
 import { TodoList } from "@/components/todo-list";
-import { supabase } from "@/lib/db";
+import { createServer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export default async function TodoPage({
@@ -8,9 +8,10 @@ export default async function TodoPage({
   params: Promise<{ todoId: string }>;
 }) {
   const { todoId } = await params;
+  const supabase = await createServer();
 
   const { data: user, error } = await supabase
-    .from("users")
+    .from("creators")
     .select("*")
     .eq("user_todo_id", todoId)
     .single();

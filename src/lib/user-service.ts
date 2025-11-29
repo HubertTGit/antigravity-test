@@ -1,8 +1,10 @@
 "use server";
 
-import { supabase } from "./db";
+import { createServer } from "./supabase/server";
 
 export async function getOrCreateUser(userId: string, name?: string) {
+  const supabase = await createServer();
+
   const { data: existingUser, error: fetchError } = await supabase
     .from("creators")
     .select("*")

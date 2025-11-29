@@ -1,9 +1,10 @@
 "use server";
 
-import { supabase } from "@/lib/db";
+import { createServer } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function getTodos(userId: string) {
+  const supabase = await createServer();
   const { data, error } = await supabase
     .from("todos")
     .select("*")
@@ -18,6 +19,7 @@ export async function getTodos(userId: string) {
 }
 
 export async function addTodo(todoId: string, text: string) {
+  const supabase = await createServer();
   const { error } = await supabase.from("todos").insert({
     text,
     user_todo_id: todoId,
@@ -31,6 +33,7 @@ export async function addTodo(todoId: string, text: string) {
 }
 
 export async function toggleTodo(id: string) {
+  const supabase = await createServer();
   // Fetch current todo to get completed state and userTodoId
   const { data: todo, error: fetchError } = await supabase
     .from("todos")
@@ -55,6 +58,7 @@ export async function toggleTodo(id: string) {
 }
 
 export async function deleteTodo(id: string) {
+  const supabase = await createServer();
   // Fetch todo to get userTodoId before deleting
   const { data: todo, error: fetchError } = await supabase
     .from("todos")
@@ -79,6 +83,7 @@ export async function deleteTodo(id: string) {
 }
 
 export async function deleteCompletedTodos(userId: string) {
+  const supabase = await createServer();
   const { error } = await supabase
     .from("todos")
     .delete()
@@ -93,6 +98,7 @@ export async function deleteCompletedTodos(userId: string) {
 }
 
 export async function updateTodo(id: string, text: string) {
+  const supabase = await createServer();
   // Fetch todo to get userTodoId
   const { data: todo, error: fetchError } = await supabase
     .from("todos")

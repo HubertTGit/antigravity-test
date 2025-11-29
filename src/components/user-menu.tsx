@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/lib/auth-context";
@@ -9,8 +9,15 @@ import { toast } from "sonner";
 export function UserMenu() {
   const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
+  const [imgUrl, setImgUrl] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    if (user && user.user_metadata?.avatar_url) {
+      setImgUrl(user?.user_metadata?.avatar_url);
+    }
+  }, [user]);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -43,7 +50,11 @@ export function UserMenu() {
         className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
         aria-label="User menu"
       >
-        {initials}
+        {imgUrl ? (
+          <img src={imgUrl} alt="User" className="h-8 w-8 rounded-full" />
+        ) : (
+          initials
+        )}
       </button>
 
       {isOpen && (
