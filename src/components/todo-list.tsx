@@ -63,8 +63,6 @@ export function TodoList({ todoId }: { todoId?: string }) {
             created_at: string;
           }>,
         ) => {
-          console.log("Realtime event:", payload.eventType, payload);
-
           if (payload.eventType === "INSERT" && payload.new) {
             const newTodo: Todo = {
               id: payload.new.id.toString(),
@@ -73,6 +71,11 @@ export function TodoList({ todoId }: { todoId?: string }) {
               created_at: payload.new.created_at,
             };
             setTodos((prev) => {
+              console.log(
+                "isduplicated",
+                prev.some((t) => t.id === newTodo.id),
+              );
+
               // Avoid duplicates
               if (prev.some((t) => t.id === newTodo.id)) return prev;
               return [newTodo, ...prev];

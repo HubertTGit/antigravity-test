@@ -83,19 +83,19 @@ export async function deleteTodo(id: string): Promise<void> {
   revalidatePath(`/todo/${todo.user_todo_id}`);
 }
 
-export async function deleteCompletedTodos(userId: string): Promise<void> {
+export async function deleteCompletedTodos(id: string): Promise<void> {
   const supabase = await createServer();
   const { error } = await supabase
     .from("todos")
     .delete()
-    .eq("user_todo_id", userId)
+    .eq("user_todo_id", id)
     .eq("completed", true);
 
   if (error) {
     throw error;
   }
 
-  revalidatePath(`/todo/${userId}`);
+  revalidatePath(`/todo/${id}`);
 }
 
 export async function updateTodo(id: string, text: string): Promise<void> {
