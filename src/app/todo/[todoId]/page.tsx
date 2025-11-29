@@ -10,13 +10,13 @@ export default async function TodoPage({
   const { todoId } = await params;
   const supabase = await createServer();
 
-  const { data: user, error } = await supabase
+  const { data, error } = await supabase
     .from("creators")
     .select("*")
     .eq("user_todo_id", todoId)
     .single();
 
-  if (!user || error) {
+  if (data?.user_todo_id !== todoId || error) {
     redirect("/?error=invalid_todo_id");
   }
 
