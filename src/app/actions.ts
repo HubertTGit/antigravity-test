@@ -2,8 +2,9 @@
 
 import { createServer } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { Todo } from "@/types/todo";
 
-export async function getTodos(userId: string) {
+export async function getTodos(userId: string): Promise<Todo[]> {
   const supabase = await createServer();
   const { data, error } = await supabase
     .from("todos")
@@ -18,7 +19,7 @@ export async function getTodos(userId: string) {
   return data || [];
 }
 
-export async function addTodo(todoId: string, text: string) {
+export async function addTodo(todoId: string, text: string): Promise<void> {
   const supabase = await createServer();
   const { error } = await supabase.from("todos").insert({
     text,
@@ -32,7 +33,7 @@ export async function addTodo(todoId: string, text: string) {
   revalidatePath(`/todo/${todoId}`);
 }
 
-export async function toggleTodo(id: string) {
+export async function toggleTodo(id: string): Promise<void> {
   const supabase = await createServer();
   // Fetch current todo to get completed state and userTodoId
   const { data: todo, error: fetchError } = await supabase
@@ -57,7 +58,7 @@ export async function toggleTodo(id: string) {
   revalidatePath(`/todo/${todo.user_todo_id}`);
 }
 
-export async function deleteTodo(id: string) {
+export async function deleteTodo(id: string): Promise<void> {
   const supabase = await createServer();
   // Fetch todo to get userTodoId before deleting
   const { data: todo, error: fetchError } = await supabase
@@ -82,7 +83,7 @@ export async function deleteTodo(id: string) {
   revalidatePath(`/todo/${todo.user_todo_id}`);
 }
 
-export async function deleteCompletedTodos(userId: string) {
+export async function deleteCompletedTodos(userId: string): Promise<void> {
   const supabase = await createServer();
   const { error } = await supabase
     .from("todos")
@@ -97,7 +98,7 @@ export async function deleteCompletedTodos(userId: string) {
   revalidatePath(`/todo/${userId}`);
 }
 
-export async function updateTodo(id: string, text: string) {
+export async function updateTodo(id: string, text: string): Promise<void> {
   const supabase = await createServer();
   // Fetch todo to get userTodoId
   const { data: todo, error: fetchError } = await supabase

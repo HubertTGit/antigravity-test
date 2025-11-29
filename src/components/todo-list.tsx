@@ -33,7 +33,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
           id: t.id.toString(),
           text: t.text,
           completed: t.completed,
-          createdAt: t.createdAt.getTime(),
+          created_at: t.created_at,
         }));
         setTodos(adaptedTodos);
       });
@@ -52,7 +52,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
       id: tempId,
       text: text,
       completed: false,
-      created_at: Date.now(),
+      created_at: Date.now().toLocaleString(),
     };
     setTodos((prev) => [newTodo, ...prev]);
 
@@ -64,7 +64,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
         id: t.id.toString(),
         text: t.text,
         completed: t.completed,
-        createdAt: t.createdAt.getTime(),
+        created_at: t.created_at,
       }));
       setTodos(adaptedTodos);
     });
