@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useRef } from "react";
 import { Todo } from "@/types/todo";
 import { TodoItem } from "@/components/todo-item";
 import { Plus } from "lucide-react";
@@ -22,6 +22,12 @@ export function TodoList({ todoId }: { todoId?: string }) {
   const [isPending, startTransition] = useTransition();
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
 
+  // Generate unique client session ID to track self-generated changes
+  const [clientSessionId] = useState(
+    () => `client-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+  );
+  const pendingActionsRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     if (!todoId) return;
 
@@ -40,6 +46,68 @@ export function TodoList({ todoId }: { todoId?: string }) {
     const supabase = createClient();
     const channel = supabase
       .channel(`todos:${todoId}`)
+      .on(
+        "broadcast",
+        { event: "todo-change" },
+        ({
+          payload: broadcast,
+        }: {
+          payload: {
+            type: string;
+            payload: Todo | { id: string } | null;
+            clientSessionId: string;
+          };
+        }) => {
+          // Ignore events from this client session
+          if (broadcast.clientSessionId === clientSessionId) {
+            return;
+          }
+
+          // Handle changes from other clients
+          if (
+            broadcast.type === "INSERT" &&
+            broadcast.payload &&
+            "text" in broadcast.payload
+          ) {
+            const newTodo: Todo = {
+              id: broadcast.payload.id.toString(),
+              text: broadcast.payload.text,
+              completed: broadcast.payload.completed,
+              created_at: broadcast.payload.created_at,
+            };
+            setTodos((prev) => {
+              // Avoid duplicates
+              if (prev.some((t) => t.id === newTodo.id)) return prev;
+              return [newTodo, ...prev];
+            });
+          } else if (
+            broadcast.type === "UPDATE" &&
+            broadcast.payload &&
+            "text" in broadcast.payload
+          ) {
+            const updatedTodo: Todo = {
+              id: broadcast.payload.id.toString(),
+              text: broadcast.payload.text,
+              completed: broadcast.payload.completed,
+              created_at: broadcast.payload.created_at,
+            };
+            setTodos((prev) =>
+              prev.map((todo) =>
+                todo.id === updatedTodo.id ? updatedTodo : todo,
+              ),
+            );
+          } else if (
+            broadcast.type === "DELETE" &&
+            broadcast.payload &&
+            "id" in broadcast.payload
+          ) {
+            const deletedId = broadcast.payload.id.toString();
+            setTodos((prev) => prev.filter((todo) => todo.id !== deletedId));
+          } else if (broadcast.type === "DELETE_COMPLETED") {
+            setTodos((prev) => prev.filter((todo) => !todo.completed));
+          }
+        },
+      )
       .on<{
         id: string;
         text: string;
@@ -63,7 +131,24 @@ export function TodoList({ todoId }: { todoId?: string }) {
             created_at: string;
           }>,
         ) => {
-          if (payload.eventType === "INSERT" && payload.new) {
+          // Postgres changes as fallback for clients not using broadcast
+          // Only process if we haven't received broadcast for this action
+          const newId =
+            payload.new && "id" in payload.new ? payload.new.id : undefined;
+          const oldId =
+            payload.old && "id" in payload.old ? payload.old.id : undefined;
+          const actionKey = `${payload.eventType}-${newId || oldId}`;
+
+          if (pendingActionsRef.current.has(actionKey)) {
+            pendingActionsRef.current.delete(actionKey);
+            return;
+          }
+
+          if (
+            payload.eventType === "INSERT" &&
+            payload.new &&
+            "id" in payload.new
+          ) {
             const newTodo: Todo = {
               id: payload.new.id.toString(),
               text: payload.new.text,
@@ -71,11 +156,6 @@ export function TodoList({ todoId }: { todoId?: string }) {
               created_at: payload.new.created_at,
             };
             setTodos((prev) => {
-              console.log(
-                "isduplicated",
-                prev.some((t) => t.id === newTodo.id),
-              );
-
               // Avoid duplicates
               if (prev.some((t) => t.id === newTodo.id)) return prev;
               return [newTodo, ...prev];
@@ -108,7 +188,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [todoId]);
+  }, [todoId, clientSessionId]);
 
   const handleAddTodo = async () => {
     if (!inputValue.trim() || !todoId) return;
@@ -122,13 +202,46 @@ export function TodoList({ todoId }: { todoId?: string }) {
       id: tempId,
       text: text,
       completed: false,
-      created_at: Date.now().toLocaleString(),
+      created_at: new Date().toISOString(),
     };
     setTodos((prev) => [newTodo, ...prev]);
 
     startTransition(async () => {
-      await addTodo(todoId, text);
-      // Realtime subscription will handle updating with real ID
+      const result = await addTodo(todoId, text);
+
+      // Replace temp ID with real ID from server
+      setTodos((prev) =>
+        prev.map((todo) =>
+          todo.id === tempId
+            ? {
+                id: result.id,
+                text: result.text,
+                completed: result.completed,
+                created_at: result.created_at,
+              }
+            : todo,
+        ),
+      );
+
+      // Broadcast change to other clients
+      const supabase = createClient();
+      const channel = supabase.channel(`todos:${todoId}`);
+      await channel.send({
+        type: "broadcast",
+        event: "todo-change",
+        payload: {
+          type: "INSERT",
+          payload: result,
+          clientSessionId: clientSessionId,
+        },
+      });
+
+      // Mark this action as handled
+      pendingActionsRef.current.add(`INSERT-${result.id}`);
+      setTimeout(
+        () => pendingActionsRef.current.delete(`INSERT-${result.id}`),
+        1000,
+      );
     });
   };
 
@@ -147,7 +260,28 @@ export function TodoList({ todoId }: { todoId?: string }) {
     );
 
     startTransition(async () => {
-      await toggleTodo(id);
+      const result = await toggleTodo(id);
+
+      // Broadcast change to other clients
+      if (result && todoId) {
+        const supabase = createClient();
+        const channel = supabase.channel(`todos:${todoId}`);
+        await channel.send({
+          type: "broadcast",
+          event: "todo-change",
+          payload: {
+            type: "UPDATE",
+            payload: result,
+            clientSessionId: clientSessionId,
+          },
+        });
+
+        pendingActionsRef.current.add(`UPDATE-${result.id}`);
+        setTimeout(
+          () => pendingActionsRef.current.delete(`UPDATE-${result.id}`),
+          1000,
+        );
+      }
     });
   };
 
@@ -157,6 +291,27 @@ export function TodoList({ todoId }: { todoId?: string }) {
 
     startTransition(async () => {
       await deleteTodo(id);
+
+      // Broadcast change to other clients
+      if (todoId) {
+        const supabase = createClient();
+        const channel = supabase.channel(`todos:${todoId}`);
+        await channel.send({
+          type: "broadcast",
+          event: "todo-change",
+          payload: {
+            type: "DELETE",
+            payload: { id },
+            clientSessionId: clientSessionId,
+          },
+        });
+
+        pendingActionsRef.current.add(`DELETE-${id}`);
+        setTimeout(
+          () => pendingActionsRef.current.delete(`DELETE-${id}`),
+          1000,
+        );
+      }
     });
   };
 
@@ -167,7 +322,28 @@ export function TodoList({ todoId }: { todoId?: string }) {
     );
 
     startTransition(async () => {
-      await updateTodo(id, newText);
+      const result = await updateTodo(id, newText);
+
+      // Broadcast change to other clients
+      if (result && todoId) {
+        const supabase = createClient();
+        const channel = supabase.channel(`todos:${todoId}`);
+        await channel.send({
+          type: "broadcast",
+          event: "todo-change",
+          payload: {
+            type: "UPDATE",
+            payload: result,
+            clientSessionId: clientSessionId,
+          },
+        });
+
+        pendingActionsRef.current.add(`UPDATE-${result.id}`);
+        setTimeout(
+          () => pendingActionsRef.current.delete(`UPDATE-${result.id}`),
+          1000,
+        );
+      }
     });
   };
 
@@ -179,6 +355,19 @@ export function TodoList({ todoId }: { todoId?: string }) {
 
     startTransition(async () => {
       await deleteCompletedTodos(todoId);
+
+      // Broadcast change to other clients
+      const supabase = createClient();
+      const channel = supabase.channel(`todos:${todoId}`);
+      await channel.send({
+        type: "broadcast",
+        event: "todo-change",
+        payload: {
+          type: "DELETE_COMPLETED",
+          payload: null,
+          clientSessionId: clientSessionId,
+        },
+      });
     });
   };
 

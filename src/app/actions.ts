@@ -19,21 +19,26 @@ export async function getTodos(userId: string): Promise<Todo[]> {
   return data || [];
 }
 
-export async function addTodo(todoId: string, text: string): Promise<void> {
+export async function addTodo(todoId: string, text: string): Promise<Todo> {
   const supabase = await createServer();
-  const { error } = await supabase.from("todos").insert({
-    text,
-    user_todo_id: todoId,
-  });
+  const { data, error } = await supabase
+    .from("todos")
+    .insert({
+      text,
+      user_todo_id: todoId,
+    })
+    .select()
+    .single();
 
-  if (error) {
-    throw error;
+  if (error || !data) {
+    throw error || new Error("Failed to create todo");
   }
 
   revalidatePath(`/todo/${todoId}`);
+  return data;
 }
 
-export async function toggleTodo(id: string): Promise<void> {
+export async function toggleTodo(id: string): Promise<Todo | null> {
   const supabase = await createServer();
   // Fetch current todo to get completed state and userTodoId
   const { data: todo, error: fetchError } = await supabase
@@ -43,19 +48,22 @@ export async function toggleTodo(id: string): Promise<void> {
     .single();
 
   if (fetchError || !todo) {
-    return;
+    return null;
   }
 
-  const { error: updateError } = await supabase
+  const { data, error: updateError } = await supabase
     .from("todos")
     .update({ completed: !todo.completed })
-    .eq("id", id);
+    .eq("id", id)
+    .select()
+    .single();
 
-  if (updateError) {
-    throw updateError;
+  if (updateError || !data) {
+    throw updateError || new Error("Failed to update todo");
   }
 
   revalidatePath(`/todo/${todo.user_todo_id}`);
+  return data;
 }
 
 export async function deleteTodo(id: string): Promise<void> {
@@ -98,7 +106,10 @@ export async function deleteCompletedTodos(id: string): Promise<void> {
   revalidatePath(`/todo/${id}`);
 }
 
-export async function updateTodo(id: string, text: string): Promise<void> {
+export async function updateTodo(
+  id: string,
+  text: string,
+): Promise<Todo | null> {
   const supabase = await createServer();
   // Fetch todo to get userTodoId
   const { data: todo, error: fetchError } = await supabase
@@ -108,17 +119,20 @@ export async function updateTodo(id: string, text: string): Promise<void> {
     .single();
 
   if (fetchError || !todo) {
-    return;
+    return null;
   }
 
-  const { error: updateError } = await supabase
+  const { data, error: updateError } = await supabase
     .from("todos")
     .update({ text })
-    .eq("id", id);
+    .eq("id", id)
+    .select()
+    .single();
 
-  if (updateError) {
-    throw updateError;
+  if (updateError || !data) {
+    throw updateError || new Error("Failed to update todo");
   }
 
   revalidatePath(`/todo/${todo.user_todo_id}`);
+  return data;
 }
