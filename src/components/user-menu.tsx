@@ -10,15 +10,10 @@ import Image from "next/image";
 export function UserMenu() {
   const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
-  const [imgUrl, setImgUrl] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
-  useEffect(() => {
-    if (user && user.user_metadata?.avatar_url) {
-      setImgUrl(user?.user_metadata?.avatar_url);
-    }
-  }, [user]);
+  const imgUrl = user?.user_metadata?.avatar_url || null;
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
