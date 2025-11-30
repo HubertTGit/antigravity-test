@@ -40,10 +40,10 @@ export async function proxy(request: NextRequest) {
   const isPublicRoute =
     publicRoutes.includes(request.nextUrl.pathname) || isTodoRoute;
 
-  // Redirect to sign-in if accessing protected route without authentication
+  // Redirect to home if accessing protected route without authentication
   if (!isPublicRoute && !user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/sign-in";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
