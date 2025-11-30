@@ -496,14 +496,14 @@ export function TodoList({ todoId }: { todoId?: string }) {
               onClick={() => setFilter("active")}
               size="sm"
             >
-              Active
+              Active ({todos.filter((t) => !t.completed).length})
             </Button>
             <Button
               variant={filter === "completed" ? "default" : "outline"}
               onClick={() => setFilter("completed")}
               size="sm"
             >
-              Completed
+              Completed ({todos.filter((t) => t.completed).length})
             </Button>
           </div>
         </div>
