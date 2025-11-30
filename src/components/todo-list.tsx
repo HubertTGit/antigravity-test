@@ -438,19 +438,18 @@ export function TodoList({ todoId }: { todoId?: string }) {
       <div className="bg-background/95 sticky top-0 z-20 mx-auto w-full max-w-2xl space-y-4 py-4">
         <div className="flex justify-between gap-2">
           <ShareButton show={isSignedIn && pathname !== "/"} todoId={todoId} />
-          <div>
-            {todos.some((todo) => todo.completed) && (
-              <div className="flex justify-center">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDeleteCompleted}
-                  disabled={isPending}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+          <div></div>
+
+          <div className="flex justify-center">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteCompleted}
+              disabled={isPending || !todos.some((todo) => todo.completed)}
+            >
+              delete completed ({todos.filter((t) => t.completed).length})
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
         <div className="flex gap-2">
