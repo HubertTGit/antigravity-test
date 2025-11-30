@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition, useRef } from "react";
 import { Todo } from "@/types/todo";
 import { TodoItem } from "@/components/todo-item";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   getTodos,
@@ -15,12 +15,19 @@ import {
 } from "@/app/actions";
 import { createClient } from "@/lib/supabase/client";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { usePathname } from "next/navigation";
+import { useUser } from "@/lib/auth-context";
+import { ShareButton } from "./share-button";
 
 export function TodoList({ todoId }: { todoId?: string }) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isPending, startTransition] = useTransition();
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
+
+  const pathname = usePathname();
+
+  const { isSignedIn } = useUser();
 
   // Generate unique client session ID to track self-generated changes
   const [clientSessionId] = useState(
@@ -76,6 +83,11 @@ export function TodoList({ todoId }: { todoId?: string }) {
               created_at: broadcast.payload.created_at,
             };
             setTodos((prev) => {
+              console.log(
+                "duplicate",
+                prev.some((t) => t.id === newTodo.id),
+              );
+              console.log("prev", prev);
               // Avoid duplicates
               if (prev.some((t) => t.id === newTodo.id)) return prev;
               return [newTodo, ...prev];
@@ -402,6 +414,10 @@ export function TodoList({ todoId }: { todoId?: string }) {
 
         <div className="flex justify-between gap-2">
           <div className="flex gap-2">
+            <ShareButton
+              show={isSignedIn && pathname !== "/"}
+              todoId={todoId}
+            />
             <Button
               variant={filter === "all" ? "default" : "outline"}
               onClick={() => setFilter("all")}
@@ -433,7 +449,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
                   onClick={handleDeleteCompleted}
                   disabled={isPending}
                 >
-                  Delete Completed
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             )}
