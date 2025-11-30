@@ -447,7 +447,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
               onClick={handleDeleteCompleted}
               disabled={isPending || !todos.some((todo) => todo.completed)}
             >
-              delete completed ({todos.filter((t) => t.completed).length})
+              Delete ({todos.filter((t) => t.completed).length})
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
