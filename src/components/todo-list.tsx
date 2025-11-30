@@ -169,7 +169,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
             };
             setTodos((prev) => {
               // Avoid duplicates
-              if (prev.some((t) => t.id === newTodo.id)) return prev;
+              //if (prev.some((t) => t.id === newTodo.id)) return prev;
               return [newTodo, ...prev];
             });
           } else if (payload.eventType === "UPDATE" && payload.new) {
@@ -392,6 +392,23 @@ export function TodoList({ todoId }: { todoId?: string }) {
   return (
     <div className="mx-4">
       <div className="bg-background/95 sticky top-0 z-20 mx-auto w-full max-w-2xl space-y-4 py-4">
+        <div className="flex justify-between gap-2">
+          <ShareButton show={isSignedIn && pathname !== "/"} todoId={todoId} />
+          <div>
+            {todos.some((todo) => todo.completed) && (
+              <div className="flex justify-center">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteCompleted}
+                  disabled={isPending}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
         <div className="flex gap-2">
           <input
             type="text"
@@ -412,12 +429,8 @@ export function TodoList({ todoId }: { todoId?: string }) {
           </Button>
         </div>
 
-        <div className="flex justify-between gap-2">
+        <div className="flex gap-2">
           <div className="flex gap-2">
-            <ShareButton
-              show={isSignedIn && pathname !== "/"}
-              todoId={todoId}
-            />
             <Button
               variant={filter === "all" ? "default" : "outline"}
               onClick={() => setFilter("all")}
@@ -439,20 +452,6 @@ export function TodoList({ todoId }: { todoId?: string }) {
             >
               Completed
             </Button>
-          </div>
-          <div>
-            {todos.some((todo) => todo.completed) && (
-              <div className="flex justify-center">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDeleteCompleted}
-                  disabled={isPending}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       </div>
