@@ -12,7 +12,9 @@ import {
   deleteTodo,
   updateTodo,
   deleteCompletedTodos,
+  toggleAllTodos,
 } from "@/app/actions";
+import { Checkbox } from "@/components/ui/checkbox";
 import { createClient } from "@/lib/supabase/client";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
@@ -117,6 +119,19 @@ export function TodoList({ todoId }: { todoId?: string }) {
             setTodos((prev) => prev.filter((todo) => todo.id !== deletedId));
           } else if (broadcast.type === "DELETE_COMPLETED") {
             setTodos((prev) => prev.filter((todo) => !todo.completed));
+          } else if (
+            broadcast.type === "TOGGLE_ALL" &&
+            broadcast.payload &&
+            "completed" in broadcast.payload
+          ) {
+            const completed = (broadcast.payload as { completed: boolean })
+              .completed;
+            setTodos((prev) =>
+              prev.map((todo) => ({
+                ...todo,
+                completed,
+              })),
+            );
           }
         },
       )
@@ -383,6 +398,35 @@ export function TodoList({ todoId }: { todoId?: string }) {
     });
   };
 
+  const handleToggleAll = async () => {
+    if (!todoId || todos.length === 0) return;
+
+    const allCompleted = todos.every((t) => t.completed);
+    const newCompletedStatus = !allCompleted;
+
+    // Optimistic update
+    setTodos((prev) =>
+      prev.map((todo) => ({ ...todo, completed: newCompletedStatus })),
+    );
+
+    startTransition(async () => {
+      await toggleAllTodos(todoId, newCompletedStatus);
+
+      // Broadcast change to other clients
+      const supabase = createClient();
+      const channel = supabase.channel(`todos:${todoId}`);
+      await channel.send({
+        type: "broadcast",
+        event: "todo-change",
+        payload: {
+          type: "TOGGLE_ALL",
+          payload: { completed: newCompletedStatus },
+          clientSessionId: clientSessionId,
+        },
+      });
+    });
+  };
+
   const filteredTodos = todos.filter((todo) => {
     if (filter === "active") return !todo.completed;
     if (filter === "completed") return todo.completed;
@@ -431,6 +475,14 @@ export function TodoList({ todoId }: { todoId?: string }) {
 
         <div className="flex gap-2">
           <div className="flex gap-2">
+            <div className="bg-background flex items-center space-x-2 rounded-md border px-3">
+              <Checkbox
+                id="toggle-all"
+                checked={todos.length > 0 && todos.every((t) => t.completed)}
+                onCheckedChange={handleToggleAll}
+                disabled={todos.length === 0 || isPending}
+              />
+            </div>
             <Button
               variant={filter === "all" ? "default" : "outline"}
               onClick={() => setFilter("all")}
@@ -438,6 +490,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
             >
               All
             </Button>
+
             <Button
               variant={filter === "active" ? "default" : "outline"}
               onClick={() => setFilter("active")}

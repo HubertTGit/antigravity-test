@@ -136,3 +136,20 @@ export async function updateTodo(
   revalidatePath(`/todo/${todo.user_todo_id}`);
   return data;
 }
+
+export async function toggleAllTodos(
+  todoId: string,
+  completed: boolean,
+): Promise<void> {
+  const supabase = await createServer();
+  const { error } = await supabase
+    .from("todos")
+    .update({ completed })
+    .eq("user_todo_id", todoId);
+
+  if (error) {
+    throw error;
+  }
+
+  revalidatePath(`/todo/${todoId}`);
+}
