@@ -67,8 +67,9 @@ export function UserMenu() {
       {isOpen && (
         <>
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
+            aria-hidden="true"
           />
           <div className="ring-opacity-5 absolute left-0 z-50 mt-2 w-56 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black focus:outline-none dark:bg-gray-800">
             <div className="px-4 py-3">
