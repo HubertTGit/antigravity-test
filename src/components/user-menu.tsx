@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/lib/auth-context";
 import { toast } from "sonner";
+import Image from "next/image";
 
 export function UserMenu() {
   const { user } = useUser();
@@ -51,7 +52,13 @@ export function UserMenu() {
         aria-label="User menu"
       >
         {imgUrl ? (
-          <img src={imgUrl} alt="User" className="h-8 w-8 rounded-full" />
+          <Image
+            src={imgUrl}
+            alt="User"
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-full"
+          />
         ) : (
           initials
         )}
@@ -63,7 +70,7 @@ export function UserMenu() {
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <div className="ring-opacity-5 absolute left-0 z-20 mt-2 w-56 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black focus:outline-none dark:bg-gray-800">
+          <div className="ring-opacity-5 absolute left-0 z-50 mt-2 w-56 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black focus:outline-none dark:bg-gray-800">
             <div className="px-4 py-3">
               <p className="text-sm font-medium text-gray-900 dark:text-white">
                 {displayName}

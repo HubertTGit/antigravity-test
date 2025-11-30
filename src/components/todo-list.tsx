@@ -379,7 +379,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
 
   return (
     <div className="mx-4">
-      <div className="bg-background/95 sticky top-0 z-100 mx-auto w-full max-w-2xl space-y-4 py-4">
+      <div className="bg-background/95 sticky top-0 z-20 mx-auto w-full max-w-2xl space-y-4 py-4">
         <div className="flex gap-2">
           <input
             type="text"

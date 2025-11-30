@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -11,7 +10,6 @@ export function SignInForm() {
   const [email, setEmail] = useState("");
   const [isPending, startTransition] = useTransition();
   const [isGooglePending, startGoogleTransition] = useTransition();
-  const router = useRouter();
   const supabase = createClient();
 
   const handleGoogleSignIn = async () => {
