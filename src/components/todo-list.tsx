@@ -16,7 +16,6 @@ import {
 } from "@/app/actions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createClient } from "@/lib/supabase/client";
-import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/lib/auth-context";
 import { ShareButton } from "./share-button";
@@ -85,6 +84,10 @@ export function TodoList({ todoId }: { todoId?: string }) {
               created_at: broadcast.payload.created_at,
             };
             setTodos((prev) => {
+              //update appBandge
+              navigator.setAppBadge?.(
+                prev.filter((t) => !t.completed).length + 1,
+              );
               // Avoid duplicates
               if (prev.some((t) => t.id === newTodo.id)) return prev;
               return [newTodo, ...prev];
