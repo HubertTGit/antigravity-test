@@ -362,15 +362,17 @@ export function TodoList({ todoId }: { todoId?: string }) {
           <div></div>
 
           <div className="flex justify-center">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDeleteCompleted}
-              disabled={isPending || !todos.some((todo) => todo.completed)}
-            >
-              Delete ({todos.filter((t) => t.completed).length})
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {isSignedIn && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDeleteCompleted}
+                disabled={isPending || !todos.some((todo) => todo.completed)}
+              >
+                Delete ({todos.filter((t) => t.completed).length})
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
         <div className="flex gap-2">
@@ -448,6 +450,7 @@ export function TodoList({ todoId }: { todoId?: string }) {
               onToggle={handleToggleTodo}
               onDelete={handleDeleteTodo}
               onUpdate={handleUpdateTodo}
+              isSignedIn={isSignedIn}
             />
           ))
         )}

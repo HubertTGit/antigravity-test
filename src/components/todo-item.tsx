@@ -9,9 +9,16 @@ interface TodoItemProps {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, newText: string) => void;
+  isSignedIn?: boolean;
 }
 
-export function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) {
+export function TodoItem({
+  todo,
+  onToggle,
+  onDelete,
+  onUpdate,
+  isSignedIn,
+}: TodoItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.text);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -41,24 +48,24 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) 
   return (
     <div
       className={cn(
-        "group flex items-center gap-3 rounded-lg border border-transparent bg-white p-3 shadow-sm transition-all hover:border-border/50 hover:shadow-md dark:bg-zinc-900",
-        todo.completed && "bg-zinc-50/50 dark:bg-zinc-900/50"
+        "group hover:border-border/50 flex items-center gap-3 rounded-lg border border-transparent bg-white p-3 shadow-sm transition-all hover:shadow-md dark:bg-zinc-900",
+        todo.completed && "bg-zinc-50/50 dark:bg-zinc-900/50",
       )}
     >
       <button
         onClick={() => onToggle(todo.id)}
         className={cn(
-          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "focus-visible:ring-ring flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors focus-visible:ring-2 focus-visible:outline-none",
           todo.completed
             ? "border-primary bg-primary text-primary-foreground"
-            : "border-input hover:border-primary/50"
+            : "border-input hover:border-primary/50",
         )}
         aria-label={todo.completed ? "Mark as incomplete" : "Mark as complete"}
       >
         {todo.completed && <Check className="h-3.5 w-3.5" />}
       </button>
 
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         {isEditing ? (
           <input
             ref={inputRef}
@@ -67,14 +74,16 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) 
             onChange={(e) => setEditText(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleSave}
-            className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
+            className="placeholder:text-muted-foreground w-full bg-transparent text-sm font-medium outline-none"
           />
         ) : (
           <span
             onClick={() => !todo.completed && setIsEditing(true)}
             className={cn(
-              "block truncate text-sm font-medium transition-colors cursor-pointer select-none",
-              todo.completed ? "text-muted-foreground line-through" : "text-foreground"
+              "block cursor-pointer truncate text-sm font-medium transition-colors select-none",
+              todo.completed
+                ? "text-muted-foreground line-through"
+                : "text-foreground",
             )}
           >
             {todo.text}
@@ -87,7 +96,7 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) 
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground h-8 w-8"
             onClick={() => setIsEditing(true)}
             aria-label="Edit todo"
           >
@@ -97,9 +106,10 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) 
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+          className="text-muted-foreground hover:text-destructive h-8 w-8"
           onClick={() => onDelete(todo.id)}
           aria-label="Delete todo"
+          disabled={!isSignedIn}
         >
           <Trash2 className="h-4 w-4" />
         </Button>
