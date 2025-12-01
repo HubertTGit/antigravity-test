@@ -84,10 +84,6 @@ export function TodoList({ todoId }: { todoId?: string }) {
               created_at: broadcast.payload.created_at,
             };
             setTodos((prev) => {
-              //update appBandge
-              navigator.setAppBadge?.(
-                prev.filter((t) => !t.completed).length + 1,
-              );
               // Avoid duplicates
               if (prev.some((t) => t.id === newTodo.id)) return prev;
               return [newTodo, ...prev];
