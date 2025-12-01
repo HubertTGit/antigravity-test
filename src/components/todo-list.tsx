@@ -85,11 +85,6 @@ export function TodoList({ todoId }: { todoId?: string }) {
               created_at: broadcast.payload.created_at,
             };
             setTodos((prev) => {
-              console.log(
-                "duplicate",
-                prev.some((t) => t.id === newTodo.id),
-              );
-              console.log("prev", prev);
               // Avoid duplicates
               if (prev.some((t) => t.id === newTodo.id)) return prev;
               return [newTodo, ...prev];
@@ -132,80 +127,6 @@ export function TodoList({ todoId }: { todoId?: string }) {
                 completed,
               })),
             );
-          }
-        },
-      )
-      .on<{
-        id: string;
-        text: string;
-        completed: boolean;
-        user_todo_id: string;
-        created_at: string;
-      }>(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "todos",
-          filter: `user_todo_id=eq.${todoId}`,
-        },
-        (
-          payload: RealtimePostgresChangesPayload<{
-            id: string;
-            text: string;
-            completed: boolean;
-            user_todo_id: string;
-            created_at: string;
-          }>,
-        ) => {
-          // Postgres changes as fallback for clients not using broadcast
-          // Only process if we haven't received broadcast for this action
-          const newId =
-            payload.new && "id" in payload.new ? payload.new.id : undefined;
-          const oldId =
-            payload.old && "id" in payload.old ? payload.old.id : undefined;
-          const actionKey = `${payload.eventType}-${newId || oldId}`;
-
-          if (pendingActionsRef.current.has(actionKey)) {
-            pendingActionsRef.current.delete(actionKey);
-            return;
-          }
-
-          if (
-            payload.eventType === "INSERT" &&
-            payload.new &&
-            "id" in payload.new
-          ) {
-            const newTodo: Todo = {
-              id: payload.new.id.toString(),
-              text: payload.new.text,
-              completed: payload.new.completed,
-              created_at: payload.new.created_at,
-            };
-            setTodos((prev) => {
-              // Avoid duplicates
-              //if (prev.some((t) => t.id === newTodo.id)) return prev;
-              return [newTodo, ...prev];
-            });
-          } else if (payload.eventType === "UPDATE" && payload.new) {
-            const updatedTodo: Todo = {
-              id: payload.new.id.toString(),
-              text: payload.new.text,
-              completed: payload.new.completed,
-              created_at: payload.new.created_at,
-            };
-            setTodos((prev) =>
-              prev.map((todo) =>
-                todo.id === updatedTodo.id ? updatedTodo : todo,
-              ),
-            );
-          } else if (
-            payload.eventType === "DELETE" &&
-            payload.old &&
-            payload.old.id
-          ) {
-            const deletedId = payload.old.id.toString();
-            setTodos((prev) => prev.filter((todo) => todo.id !== deletedId));
           }
         },
       )
