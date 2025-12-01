@@ -4,12 +4,12 @@ import { createServer } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { Todo } from "@/types/todo";
 
-export async function getTodos(userId: string): Promise<Todo[]> {
+export async function getTodos(todoId: string): Promise<Todo[]> {
   const supabase = await createServer();
   const { data, error } = await supabase
     .from("todos")
     .select("*")
-    .eq("user_todo_id", userId)
+    .eq("user_todo_id", todoId)
     .order("created_at", { ascending: false });
 
   if (error) {
