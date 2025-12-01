@@ -8,7 +8,7 @@ export default function SignUpPage() {
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight">Create account</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Sign up with Google or Magic Link
+            Sign up with Google
           </p>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Or{" "}
