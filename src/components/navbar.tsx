@@ -2,13 +2,10 @@
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "./ui/button";
-import { UserMenu } from "@/components/user-menu";
 import { useUser } from "@/lib/auth-context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactElement } from "react";
-import { toast } from "sonner";
-import { Share2 } from "lucide-react";
 
 function ExitButton({ show = false }: { show?: boolean }): ReactElement | null {
   if (!show) return null;
