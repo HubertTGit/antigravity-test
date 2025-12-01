@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { SignInForm } from "@/components/auth/sign-in-form";
 import { useUser } from "@/lib/auth-context";
 import Link from "next/link";
 import { getOrCreateUser } from "@/lib/user-service";
@@ -48,7 +49,7 @@ function HomeContent() {
   }, [isLoaded, user, router]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-8 p-8 pb-20 sm:p-20">
+    <div className="flex flex-col items-center justify-center gap-8 p-8 pb-20 sm:p-20">
       <div className="flex w-full max-w-md flex-col gap-6">
         {/* Sign In Option */}
         <div className="bg-card flex flex-col gap-3 rounded-lg border p-6">
@@ -56,11 +57,7 @@ function HomeContent() {
           <p className="text-muted-foreground text-sm">
             Sign in to create your personal Shopping List
           </p>
-          <Link href="/sign-in" className="w-full">
-            <Button className="w-full" size="lg">
-              Sign In
-            </Button>
-          </Link>
+          <SignInForm />
         </div>
 
         {/* Existing User ID Option */}

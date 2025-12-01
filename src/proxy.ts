@@ -35,7 +35,7 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Define public routes
-  const publicRoutes = ["/", "/sign-in", "/sign-up"];
+  const publicRoutes = ["/"];
   const isTodoRoute = request.nextUrl.pathname.startsWith("/todo/");
   const isPublicRoute =
     publicRoutes.includes(request.nextUrl.pathname) || isTodoRoute;
