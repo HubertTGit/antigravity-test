@@ -47,20 +47,6 @@ function HomeContent() {
     initUser();
   }, [isLoaded, user, router]);
 
-  const handleTodoIdSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!todoId.trim()) {
-      toast.error("Please enter a valid Todo ID");
-      return;
-    }
-
-    // Since we don't have a database to validate against,
-    // we'll accept any non-empty todoId and redirect
-    // In a real app, you would validate against your database here
-    router.push(`/todo/${todoId.trim()}`);
-  };
-
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 p-8 pb-20 sm:p-20">
       <div className="flex w-full max-w-md flex-col gap-6">
@@ -85,14 +71,16 @@ function HomeContent() {
           <p className="text-muted-foreground text-sm">
             Enter the 6 digits Shopping List Ids for the list you want to join
           </p>
-          <form
-            onSubmit={handleTodoIdSubmit}
-            className="flex flex-col items-center justify-center gap-3"
-          >
+          <div className="flex flex-col items-center justify-center gap-3">
             <InputOTP
               maxLength={6}
               value={todoId}
-              onChange={(value) => setTodoId(value)}
+              onChange={(value) => {
+                setTodoId(value);
+                if (value.length === 6) {
+                  router.push(`/todo/${value}`);
+                }
+              }}
             >
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
@@ -106,15 +94,7 @@ function HomeContent() {
                 <InputOTPSlot index={5} />
               </InputOTPGroup>
             </InputOTP>
-            <Button
-              type="submit"
-              variant="outline"
-              size="lg"
-              className="w-full"
-            >
-              Access Shopping List
-            </Button>
-          </form>
+          </div>
         </div>
       </div>
     </div>
