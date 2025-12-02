@@ -2,16 +2,16 @@ import { TodoList } from "@/components/todo-list";
 import { redirect } from "next/navigation";
 
 import { Suspense } from "react";
-import { getTodos } from "@/app/actions";
+import { getCreator, getTodos } from "@/app/actions";
 import { Todo } from "@/types/todo";
-import { Skeleton } from "@/components/ui/skeleton";
 import TodoGhost from "@/components/todo-ghost";
 
 async function TodoFetcher({ todoId }: { todoId: string }) {
   const fetchedTodos = await getTodos(todoId);
+  const creatorResponse = await getCreator(todoId);
 
-  if (fetchedTodos.length === 0) {
-    redirect("/error?error=invalid_todo_id");
+  if (!creatorResponse) {
+    redirect("/?error=invalid_todo_id");
   }
 
   const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({

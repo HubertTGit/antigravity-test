@@ -3,6 +3,7 @@
 import { createServer } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { Todo } from "@/types/todo";
+import { Database } from "@/types/database.types";
 
 export async function getTodos(todoId: string): Promise<Todo[]> {
   const supabase = await createServer();
@@ -152,4 +153,24 @@ export async function toggleAllTodos(
   }
 
   revalidatePath(`/todo/${todoId}`);
+}
+
+export async function getCreator(
+  todoId: string,
+): Promise<Database["public"]["Tables"]["creators"]["Row"] | null> {
+  const supabase = await createServer();
+  const { data, error } = await supabase
+    .from("creators")
+    .select("*")
+    .eq("user_todo_id", todoId)
+    .order("created_at", { ascending: false })
+    .single();
+
+  console.log("data", data, error);
+
+  if (error) {
+    return null;
+  }
+
+  return data || null;
 }
