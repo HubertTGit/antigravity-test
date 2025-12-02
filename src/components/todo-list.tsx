@@ -22,11 +22,10 @@ import { ShareButton } from "./share-button";
 
 interface TodoListProps {
   todoId?: string;
-  data?: Todo[];
 }
 
-export function TodoList({ todoId, data }: TodoListProps) {
-  const [todos, setTodos] = useState<Todo[]>(data || []);
+export function TodoList({ todoId }: TodoListProps) {
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isPending, startTransition] = useTransition();
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
