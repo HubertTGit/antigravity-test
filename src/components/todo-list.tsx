@@ -6,7 +6,6 @@ import { TodoItem } from "@/components/todo-item";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  getTodos,
   addTodo,
   toggleTodo,
   deleteTodo,
@@ -22,10 +21,11 @@ import { ShareButton } from "./share-button";
 
 interface TodoListProps {
   todoId?: string;
+  initialTodos: Todo[];
 }
 
-export function TodoList({ todoId }: TodoListProps) {
-  const [todos, setTodos] = useState<Todo[]>([]);
+export function TodoList({ todoId, initialTodos }: TodoListProps) {
+  const [todos, setTodos] = useState<Todo[]>(initialTodos);
   const [inputValue, setInputValue] = useState("");
   const [isPending, startTransition] = useTransition();
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
@@ -42,17 +42,6 @@ export function TodoList({ todoId }: TodoListProps) {
 
   useEffect(() => {
     if (!todoId) return;
-
-    // Initial fetch
-    getTodos(todoId).then((fetchedTodos) => {
-      const adaptedTodos: Todo[] = fetchedTodos.map((t) => ({
-        id: t.id.toString(),
-        text: t.text,
-        completed: t.completed,
-        created_at: t.created_at,
-      }));
-      setTodos(adaptedTodos);
-    });
 
     // Set up realtime subscription
     const supabase = createClient();
