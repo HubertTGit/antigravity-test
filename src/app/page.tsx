@@ -1,55 +1,19 @@
-"use client";
-
-import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { SignInForm } from "@/components/auth/sign-in-form";
-import { useUser } from "@/lib/auth-context";
-import Link from "next/link";
-import { getOrCreateUser } from "@/lib/user-service";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
+import { JoinListForm } from "@/components/join-list-form";
+import { AuthRedirect } from "@/components/auth/auth-redirect";
 
-function HomeContent() {
-  const [todoId, setTodoId] = useState("");
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { user, isLoaded } = useUser();
+export default async function Home(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const searchParams = await props.searchParams;
+  const error =
+    typeof searchParams.error === "string" ? searchParams.error : undefined;
 
-  useEffect(() => {
-    const error = searchParams.get("error");
-    if (error === "invalid_todo_id") {
-      toast.error("Invalid Todo ID");
-      // Optional: Clear the query param
-      router.replace("/");
-    }
-  }, [searchParams, router]);
-
-  // Check if user is authenticated and redirect to their todo page
-  useEffect(() => {
-    const initUser = async () => {
-      if (isLoaded && user) {
-        const fullname = user.user_metadata?.name || "none";
-
-        try {
-          const dbUser = await getOrCreateUser(user.id, fullname);
-          router.push(`/todo/${dbUser.user_todo_id}`);
-        } catch (error) {
-          console.error("Error initializing user:", error);
-          toast.error("Failed to set up your account. Please try again.");
-        }
-      }
-    };
-    initUser();
-  }, [isLoaded, user, router]);
+  console.log("searchParams", searchParams);
 
   return (
     <div className="flex flex-col items-center justify-center gap-8 p-8 pb-20 sm:p-20">
+      <AuthRedirect />
       <div className="flex w-full max-w-md flex-col gap-6">
         {/* Sign In Option */}
         <div className="bg-card flex flex-col gap-3 rounded-lg border p-6">
@@ -61,47 +25,8 @@ function HomeContent() {
         </div>
 
         {/* Existing User ID Option */}
-        <div className="bg-card flex flex-col gap-3 rounded-lg border p-6">
-          <h2 className="text-xl font-semibold">
-            Join an existing Shopping List?
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            Enter the 6 digits Shopping List Ids for the list you want to join
-          </p>
-          <div className="flex flex-col items-center justify-center gap-3">
-            <InputOTP
-              maxLength={6}
-              value={todoId}
-              onChange={(value) => {
-                setTodoId(value);
-                if (value.length === 6) {
-                  router.push(`/todo/${value}`);
-                }
-              }}
-            >
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-              </InputOTPGroup>
-              <InputOTPSeparator />
-              <InputOTPGroup>
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
-          </div>
-        </div>
+        <JoinListForm error={error} />
       </div>
     </div>
-  );
-}
-
-export default function Home() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <HomeContent />
-    </Suspense>
   );
 }
