@@ -1,3 +1,4 @@
+import ErrorNotifier from "@/components/error-notifier";
 import { TodoList } from "@/components/todo-list";
 import { createServer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -11,13 +12,13 @@ export default async function TodoPage({
   const supabase = await createServer();
 
   const { data, error } = await supabase
-    .from("creators")
+    .from("todos")
     .select("*")
     .eq("user_todo_id", todoId)
-    .single();
+    .order("created_at", { ascending: false });
 
-  if (data?.user_todo_id !== todoId || error) {
-    redirect("/?error=invalid_todo_id");
+  if (data?.length === 0 || error) {
+    redirect("/error?error=invalid_todo_id");
   }
 
   return (

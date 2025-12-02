@@ -9,8 +9,6 @@ export default async function Home(props: {
   const error =
     typeof searchParams.error === "string" ? searchParams.error : undefined;
 
-  console.log("searchParams", searchParams);
-
   return (
     <div className="flex flex-col items-center justify-center gap-8 p-8 pb-20 sm:p-20">
       <AuthRedirect />

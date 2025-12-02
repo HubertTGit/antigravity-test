@@ -20,8 +20,13 @@ import { usePathname } from "next/navigation";
 import { useUser } from "@/lib/auth-context";
 import { ShareButton } from "./share-button";
 
-export function TodoList({ todoId }: { todoId?: string }) {
-  const [todos, setTodos] = useState<Todo[]>([]);
+interface TodoListProps {
+  todoId?: string;
+  data?: Todo[];
+}
+
+export function TodoList({ todoId, data }: TodoListProps) {
+  const [todos, setTodos] = useState<Todo[]>(data || []);
   const [inputValue, setInputValue] = useState("");
   const [isPending, startTransition] = useTransition();
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
