@@ -63,7 +63,6 @@ export default function RootLayout({
               <main>{children}</main>
             </>
             <Toaster />
-            <PwaReloadModal />
           </ThemeProvider>
         </AuthProvider>
       </body>
