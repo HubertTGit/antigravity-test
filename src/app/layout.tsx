@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Navbar } from "@/components/navbar";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/auth-context";
+import { PwaReloadModal } from "@/components/pwa-reload-modal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -62,6 +63,7 @@ export default function RootLayout({
               <main>{children}</main>
             </>
             <Toaster />
+            <PwaReloadModal />
           </ThemeProvider>
         </AuthProvider>
       </body>
